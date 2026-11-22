@@ -191,18 +191,9 @@ func (s *Server) match(d *extract.Draft, pageURL string) (*importDraft, error) {
 		Title: d.Title, Company: d.Company, Description: d.Description,
 		Credits: []draftCredit{}, Runs: []draftRun{},
 	}
-	for _, c := range d.Credits {
-		dc := draftCredit{Person: personRef{Name: c.Name}, Role: c.Role, Character: c.Character}
-		cands, err := s.peopleNamed(c.Name)
-		if err != nil {
-			return nil, err
-		}
-		if len(cands) == 1 {
-			dc.Person = personRef{ID: cands[0].ID, Name: cands[0].Name}
-		} else if len(cands) > 1 {
-			dc.Candidates = cands
-		}
-		out.Credits = append(out.Credits, dc)
+	var err error
+	if out.Credits, err = s.matchCredits(d.Credits); err != nil {
+		return nil, err
 	}
 
 	if d.WorkTitle != "" {
@@ -230,6 +221,41 @@ func (s *Server) match(d *extract.Draft, pageURL string) (*importDraft, error) {
 		out.Runs = append(out.Runs, run)
 	}
 	return out, nil
+}
+
+// matchCredits links each name to the one existing person with that name,
+// or lists the candidates when there are several.
+func (s *Server) matchCredits(credits []extract.Credit) ([]draftCredit, error) {
+	out := []draftCredit{}
+	for _, c := range credits {
+		dc := draftCredit{Person: personRef{Name: c.Name}, Role: c.Role, Character: c.Character}
+		cands, err := s.peopleNamed(c.Name)
+		if err != nil {
+			return nil, err
+		}
+		if len(cands) == 1 {
+			dc.Person = personRef{ID: cands[0].ID, Name: cands[0].Name}
+		} else if len(cands) > 1 {
+			dc.Candidates = cands
+		}
+		out = append(out, dc)
+	}
+	return out, nil
+}
+
+// parseCredits reads credits from text pasted by the member.
+func (s *Server) parseCredits(w http.ResponseWriter, r *http.Request, m *auth.Member) {
+	var in struct{ Text string }
+	if !decode(w, r, &in) {
+		return
+	}
+	credits, _ := extract.ParseCredits(in.Text)
+	out, err := s.matchCredits(credits)
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, out)
 }
 
 func firstNonEmpty(values ...string) string {

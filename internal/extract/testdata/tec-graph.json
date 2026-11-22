@@ -7,7 +7,12 @@
   "venue_address": "34 rue Maran",
   "starts_on": "2026-11-18",
   "ends_on": "2026-12-06",
-  "credits": [],
+  "credits": [
+    {
+      "name": "Paul Dubreuil",
+      "role": "director"
+    }
+  ],
   "source": "jsonld",
   "text": "Sganarelle ou le cocu imaginaire \u0026 L'Amour médecin\nDeux farces de Molière, jouées d'un trait.\nMise en scène Paul Dubreuil\n"
 }

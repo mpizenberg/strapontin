@@ -12,7 +12,7 @@ import (
 
 // Version is stored with every snapshot; bump it whenever extraction changes,
 // so stored pages can be re-extracted.
-const Version = 1
+const Version = 2
 
 // Credit is a name found on the page, with its role key.
 type Credit struct {
@@ -95,6 +95,17 @@ func Extract(body []byte, contentType, pageURL string) (*Draft, error) {
 
 	d.Image = absolute(pageURL, d.Image)
 	d.Text = p.text.String()
+
+	// Structured data gives the when and where; the text gives the who.
+	text := d.Text
+	if !strings.Contains(text, d.Description) {
+		text += "\n" + d.Description
+	}
+	credits, company := ParseCredits(text)
+	for _, c := range credits {
+		addCredit(d, c)
+	}
+	set(&d.Company, company)
 	return d, nil
 }
 

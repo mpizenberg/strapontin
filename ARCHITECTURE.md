@@ -348,6 +348,7 @@ POST   /api/invites/{token}/redeem    public: create the account or reset the pa
 GET    /api/me
 
 POST   /api/import          {url}  → draft matched against the catalogue, or the existing production
+POST   /api/credits/parse   {text} → credits read from pasted text, matched against people
 GET    /api/sources/search  ?q=&source=openagenda|tourisme
 GET    /api/wikidata/search ?q=
 

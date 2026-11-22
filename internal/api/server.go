@@ -46,6 +46,7 @@ func New(db *sql.DB, cfg Config, static fs.FS) http.Handler {
 	mux.HandleFunc("GET /api/search", s.member(s.search))
 
 	mux.HandleFunc("POST /api/import", s.member(s.importURL))
+	mux.HandleFunc("POST /api/credits/parse", s.member(s.parseCredits))
 	mux.HandleFunc("POST /api/productions", s.member(s.createProduction))
 	mux.HandleFunc("GET /api/productions/{id}", s.member(s.getProduction))
 	mux.HandleFunc("PUT /api/productions/{id}", s.member(s.updateProduction))

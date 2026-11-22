@@ -123,6 +123,17 @@ func TestImport(t *testing.T) {
 		t.Fatalf("image = %q", res.Draft.Image)
 	}
 
+	// Credits on the page text are read too.
+	if len(res.Draft.Credits) != 5 || res.Draft.Credits[1].Role != "director" {
+		t.Fatalf("text credits = %+v", res.Draft.Credits)
+	}
+
+	var pasted []draftCredit
+	c.do("POST", "/api/credits/parse", map[string]string{"text": "Mise en scène : Camille Rey\nAvec Inès Bakari"}, http.StatusOK, &pasted)
+	if len(pasted) != 2 || len(pasted[0].Candidates) != 2 || pasted[1].Person.ID != 0 || pasted[1].Role != "performer" {
+		t.Fatalf("pasted credits = %+v", pasted)
+	}
+
 	c.do("POST", "/api/import", map[string]string{"url": site.URL + "/missing"}, http.StatusBadGateway, nil)
 	c.do("POST", "/api/import", map[string]string{"url": "ftp://example.test/x"}, http.StatusBadRequest, nil)
 	e.client("").do("POST", "/api/import", map[string]string{"url": site.URL + "/tec-graph"}, http.StatusUnauthorized, nil)

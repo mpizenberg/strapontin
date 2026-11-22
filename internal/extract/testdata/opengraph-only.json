@@ -2,7 +2,28 @@
   "title": "La Timidité des cimes",
   "description": "Une forêt, trois générations, un secret qui pousse entre les arbres.",
   "image": "https://theatre.example/assets/uploads/timidite.jpg",
-  "credits": [],
+  "credits": [
+    {
+      "name": "Lou Arnaud",
+      "role": "author"
+    },
+    {
+      "name": "Bastien Coll",
+      "role": "director"
+    },
+    {
+      "name": "Ana Ruiz",
+      "role": "performer"
+    },
+    {
+      "name": "Mehdi Laroche",
+      "role": "performer"
+    },
+    {
+      "name": "Jeanne Ollier",
+      "role": "performer"
+    }
+  ],
   "source": "opengraph",
   "text": "La Timidité des cimes\ntexte original de Lou Arnaud Mise en scène Bastien Coll avec Ana Ruiz, Mehdi Laroche et Jeanne Ollier\n"
 }

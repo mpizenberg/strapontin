@@ -3,6 +3,7 @@ import { api } from "../api";
 import { back, navigate } from "../router";
 import { roles } from "../roles";
 import { Picker } from "../components/Picker";
+import { Sheet } from "../components/Sheet";
 import { SummaryRow } from "../components/SummaryRow";
 import type { ImportDraft, PersonRef, Production, ProductionInput, Status, Summary, VenueRef, WorkRef } from "../types";
 
@@ -111,7 +112,19 @@ const host = (url: string) => {
 function Form(props: { id?: number; initial: ProductionInput; draft?: ImportDraft }) {
   const [form, setForm] = createStore(() => structuredClone(props.initial) as ProductionInput);
   const [picking, setPicking] = createSignal<Picking | null>(null);
+  const [pasting, setPasting] = createSignal(false);
   const [error, setError] = createSignal("");
+
+  const addPasted = (credits: ProductionInput["credits"]) => {
+    setForm((f) => {
+      for (const c of credits) {
+        const same = f.credits.find((e) => e.role === c.role && e.person.name.toLowerCase() === c.person.name.toLowerCase());
+        if (!same) f.credits.push(c);
+        else if (!same.character) same.character = c.character;
+      }
+    });
+    setPasting(false);
+  };
   const [busy, setBusy] = createSignal(false);
   const poor = () => props.draft && (props.draft.source === "opengraph" || props.draft.source === "html");
 
@@ -269,6 +282,7 @@ function Form(props: { id?: number; initial: ProductionInput; draft?: ImportDraf
               )}
             </For>
             <button class="add-line" onClick={() => setPicking({ kind: "person" })}>＋ Ajouter une personne</button>
+            <button class="add-line" onClick={() => setPasting(true)}>＋ Coller une liste de crédits</button>
           </div>
         </section>
 
@@ -306,6 +320,33 @@ function Form(props: { id?: number; initial: ProductionInput; draft?: ImportDraf
       <Show when={picking()}>
         {(p) => <Picker kind={p().kind} initial={pickerInitial()} onPick={onPick} onClose={() => setPicking(null)} />}
       </Show>
+      <Show when={pasting()}>
+        <PasteCredits onAdd={addPasted} onClose={() => setPasting(false)} />
+      </Show>
     </>
+  );
+}
+
+/** Reads credits from text copied from a programme or a web page. */
+function PasteCredits(props: { onAdd: (credits: ProductionInput["credits"]) => void; onClose: () => void }) {
+  const [text, setText] = createSignal("");
+  const [error, setError] = createSignal("");
+  const read = async () => {
+    const credits = await api.parseCredits(text());
+    if (credits.length === 0) {
+      setError("Aucun nom reconnu. Les crédits doivent être précédés de leur rôle : « Mise en scène : … », « Avec … ».");
+      return;
+    }
+    props.onAdd(credits);
+  };
+  return (
+    <Sheet title="Coller des crédits" onClose={props.onClose}>
+      <p class="meta">Collez le bloc de crédits du programme ou du site : « Mise en scène Claire Vasseur, avec Inès Bakari, Thomas Lequeux… »</p>
+      <textarea class="textarea" rows="6" aria-label="Crédits" value={text()} onInput={(e) => setText(e.currentTarget.value)} />
+      <Show when={error()}>
+        <p class="notice warn">{error()}</p>
+      </Show>
+      <button class="btn primary block" onClick={read}>Lire les noms</button>
+    </Sheet>
   );
 }
