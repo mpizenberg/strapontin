@@ -262,7 +262,7 @@ CREATE TABLE setting (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 -- max_members (default 30), invite_quota (default 1 invite per member; admins unlimited), ntfy_topic
 ```
 
-Full-text search uses an FTS5 table over production titles, person names, work titles and venue names. A member's own comments are indexed separately and searched only for that member.
+Full-text search uses an FTS5 table over production titles, person names, work titles and venue names, kept in sync by triggers. A member's own comments are matched with `LIKE`, only for that member: there are too few to need an index.
 
 ## 5. Import pipeline (`internal/extract`)
 
@@ -337,7 +337,7 @@ On iPhone, an app added to the home screen has its own cookies, so members sign 
 
 ## 8. HTTP API
 
-All endpoints are JSON. Every endpoint except the public ones requires a session.
+All endpoints are JSON. Every endpoint except the public ones requires a session. Catalogue responses embed the member's own relation to each production (`mine: {status, rating}`), computed per request.
 
 ```
 GET    /healthz                       public: 200 once the database is open
@@ -352,14 +352,18 @@ POST   /api/import/save     draft  → production
 GET    /api/sources/search  ?q=&source=openagenda|tourisme
 GET    /api/wikidata/search ?q=
 
-GET    /api/search          ?q=     local FTS
-GET|POST|PATCH  /api/productions[/{id}]
-GET|POST|PATCH  /api/people[/{id}]       people include their credits across productions
-GET|POST|PATCH  /api/works[/{id}]
-GET|POST|PATCH  /api/venues[/{id}]
-GET|POST|PATCH|DELETE /api/outings[/{id}] ?status=     own outings only
-PUT|DELETE      /api/favorites/{entity}/{id}
-PUT|DELETE      /api/notes/{entity}/{id}
+GET    /api/roles                     role keys with their French labels
+GET    /api/search          ?q=&kind=   local FTS (productions, people, venues, works) and own comments
+POST   /api/productions               production form, plus an optional first outing status
+GET|PUT /api/productions/{id}         PUT replaces credits and runs (run ids kept) and writes a revision
+GET|PUT /api/people/{id}              people include their credits across productions
+GET|PUT /api/venues/{id}
+GET    /api/images/{id}
+GET|POST /api/outings  ?status=       own outings only, with a production summary
+PUT|DELETE /api/outings/{id}
+GET    /api/favorites
+PUT|DELETE /api/favorites/{entity}/{id}
+PUT    /api/notes/{entity}/{id}       an empty body deletes the note
 GET    /api/export.json | /api/export.csv               own data only
 
 GET    /api/admin/overview | /api/admin/members | /api/admin/events

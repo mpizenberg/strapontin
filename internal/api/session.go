@@ -66,7 +66,3 @@ func (s *Server) logout(w http.ResponseWriter, r *http.Request, m *auth.Member) 
 	s.setSessionCookie(w, "", -time.Second)
 	w.WriteHeader(http.StatusNoContent)
 }
-
-func (s *Server) me(w http.ResponseWriter, r *http.Request, m *auth.Member) {
-	writeJSON(w, http.StatusOK, m)
-}

@@ -57,3 +57,16 @@ func TestSearchTriggersFoldAccents(t *testing.T) {
 		t.Fatal("search row not deleted")
 	}
 }
+
+func TestNameKey(t *testing.T) {
+	for in, want := range map[string]string{
+		"Jean-Luc  Lagarce": "jean luc lagarce",
+		"Inès Bakari":       "ines bakari",
+		"Jeanne d’Arc":      "jeanne darc",
+		" Œdipe ":           "oedipe",
+	} {
+		if got := NameKey(in); got != want {
+			t.Errorf("NameKey(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
