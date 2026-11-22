@@ -2,7 +2,7 @@ import { createMemo, createSignal, Errored, Loading, Show } from "solid-js";
 import { api } from "../api";
 import { navigate } from "../router";
 
-/** Redeems a signup or password reset link. Shown signed in or not. */
+/** Redeems a signup, first-admin setup or password reset link. Shown signed in or not. */
 export function Invite(props: { token: string; onSignedIn: () => void }) {
   const invite = createMemo(() => api.checkInvite(props.token));
   const [name, setName] = createSignal("");
@@ -16,7 +16,7 @@ export function Invite(props: { token: string; onSignedIn: () => void }) {
     setBusy(true);
     setError("");
     try {
-      const body = invite().kind === "signup" ? { name: name(), login: login(), password: password() } : { password: password() };
+      const body = invite().kind !== "reset" ? { name: name(), login: login(), password: password() } : { password: password() };
       await api.redeemInvite(props.token, body);
       navigate("/", { replace: true });
       props.onSignedIn();
@@ -38,10 +38,14 @@ export function Invite(props: { token: string; onSignedIn: () => void }) {
       )}>
         <Loading fallback={<p class="loading">Vérification du lien…</p>}>
           <form class="stack" onSubmit={submit}>
-            <Show when={invite().kind === "signup"} fallback={
+            <Show when={invite().kind !== "reset"} fallback={
               <p>Choisissez un nouveau mot de passe pour <b>{invite().login}</b>.</p>
             }>
-              <p><b>{invite().invited_by}</b> vous invite à rejoindre Strapontin, un carnet de théâtre partagé entre proches.</p>
+              <Show when={invite().kind === "signup"} fallback={
+                <p>Créez le premier compte de Strapontin. Il aura le rôle d'administration.</p>
+              }>
+                <p><b>{invite().invited_by}</b> vous invite à rejoindre Strapontin, un carnet de théâtre partagé entre proches.</p>
+              </Show>
               <div class="field">
                 <label for="i-name">Votre nom</label>
                 <input class="input" id="i-name" autocomplete="name" required value={name()} onInput={(e) => setName(e.currentTarget.value)} />
@@ -62,7 +66,7 @@ export function Invite(props: { token: string; onSignedIn: () => void }) {
               <p class="notice warn" role="alert">{error()}</p>
             </Show>
             <button class="btn primary block" type="submit" disabled={busy()}>
-              {invite().kind === "signup" ? "Créer mon compte" : "Enregistrer le mot de passe"}
+              {invite().kind === "reset" ? "Enregistrer le mot de passe" : "Créer mon compte"}
             </button>
           </form>
         </Loading>

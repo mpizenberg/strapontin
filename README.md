@@ -11,11 +11,10 @@ Requirements: Go ≥ 1.26 and Node 24.
 ```
 cd web && npm ci && cd ..
 make build
-./strapontin admin create     # asks for a name, a login and a password
 ./strapontin serve            # http://localhost:8080, data in ./data
 ```
 
-Run `./strapontin` without arguments to see the other commands (`backup`, `export`, `reextract`, `snapshot`). Each flag also reads an environment variable (`PORT`, `DATA_DIR`, `TRUST_PROXY`, `BASE_URL`), listed in ARCHITECTURE §11.
+On the first start, `serve` logs a setup link: open it to create the admin account. Run `./strapontin` without arguments to see the other commands (`backup`, `export`, `reextract`, `snapshot`). Each flag also reads an environment variable (`PORT`, `DATA_DIR`, `TRUST_PROXY`, `BASE_URL`), listed in ARCHITECTURE §11.
 
 ## Develop
 
@@ -40,12 +39,14 @@ docker run -p 8080:8080 -v "$PWD/data:/data" ghcr.io/mpizenberg/strapontin:lates
 
 ## Deploy on Dokku
 
-One-time setup on the server: create the app, mount `/data` and set the configuration as described in ARCHITECTURE §11.2. If the GHCR package is private, Dokku also needs to log in to the registry with a classic GitHub token that has the `read:packages` scope (`dokku registry:login ghcr.io <github-user> <token>`). A public package needs no login.
+With the dokku-tui create wizard:
 
-Deploy a commit's image:
+- app `strapontin`, image `ghcr.io/mpizenberg/strapontin:sha-<commit>`, container port `8080`
+- no registry login: the package is public
+- persistent storage: default host directory, container path `/data`
+- env vars `TRUST_PROXY=1` and `BASE_URL=https://<domain>`
+- the domain, with Let's Encrypt
 
-```
-dokku git:from-image strapontin ghcr.io/mpizenberg/strapontin:sha-<commit>
-```
+Then open the app's logs: the first start prints the setup link that creates the admin account. The plain `dokku` commands are in ARCHITECTURE §11.2.
 
-Use the commit tag rather than `latest`: Dokku only redeploys when the image reference changes. Create the first account with `dokku run strapontin admin create`.
+To deploy a new commit, redeploy with its `sha-<commit>` image. Use the commit tag rather than `latest`: Dokku only redeploys when the image reference changes.

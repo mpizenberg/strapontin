@@ -312,7 +312,7 @@ Each source is one file returning a common `Candidate{Title, Venue, City, Starts
 2. Opening it asks for a name and a password, then signs the person in.
 3. Redemption is refused once `max_members` is reached, and the admin is notified.
 
-The first admin is created from the CLI: `strapontin admin create`.
+The first admin is created from a setup link. While the database has no account, `serve` logs `BASE_URL/invitation/<token>` at startup. The token is kept in memory only and is accepted only while no account exists, so it stops working once the admin account is created. Opening it asks for a name, a login and a password, like a signup link. `strapontin admin create` also creates an admin from the CLI, for example if the only admin loses access.
 
 **Sessions**
 - The cookie is HttpOnly, Secure, `SameSite=Lax` and `Path=/`.
@@ -519,7 +519,7 @@ The dokku-tui create wizard runs the same steps.
 - **Directory owner.** The image runs as uid 32767, the owner `storage:ensure-directory` gives the directory by default, so no `chown` is needed.
 - **One server at a time.** During a deploy, Dokku starts the new container while the old one still runs, then stops the old one. Two processes would then share the SQLite file, and the new one would migrate the schema under the old code. So `serve` first takes an exclusive `flock` on `/data/strapontin.lock` and waits for the old container to exit, then opens the database. Dokku's default check only verifies that the container is still running after 10 seconds, which a waiting container passes. The site is unreachable for the few seconds between the switch and the new server listening, which is acceptable here.
 - **The database lives only on the mounted volume.** Nothing is written inside the container, which is replaced on every deploy.
-- **The first admin** is created with `dokku run strapontin admin create`. The arguments are passed to the binary's `ENTRYPOINT`.
+- **The first admin** is created from the setup link that the first start writes to the app's logs (section 7).
 
 ### 11.3 Backups and migrations
 

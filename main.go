@@ -188,11 +188,12 @@ func serve(cfg config) error {
 	}
 	defer d.Close()
 
+	handler := api.New(d, api.Config{
+		BaseURL: cfg.baseURL, TrustProxy: cfg.trustProxy, AllowPrivateFetch: cfg.localFetch, BackupDir: cfg.backupDir(),
+	}, frontendFS())
 	srv := &http.Server{
-		Addr: ":" + cfg.port,
-		Handler: api.New(d, api.Config{
-			BaseURL: cfg.baseURL, TrustProxy: cfg.trustProxy, AllowPrivateFetch: cfg.localFetch, BackupDir: cfg.backupDir(),
-		}, frontendFS()),
+		Addr:              ":" + cfg.port,
+		Handler:           handler,
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      60 * time.Second,
@@ -208,6 +209,9 @@ func serve(cfg config) error {
 		srv.Shutdown(shutdown)
 	}()
 	log.Printf("listening on :%s, data in %s", cfg.port, cfg.dataDir)
+	if link := handler.SetupLink(); link != "" {
+		log.Printf("no account yet: open %s to create the admin account", link)
+	}
 	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}

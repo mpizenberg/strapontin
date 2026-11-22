@@ -44,7 +44,7 @@ export const api = {
   roles: () => get<Role[]>("/api/roles"),
 
   createInvite: () => request<InviteLink>("POST", "/api/invites"),
-  checkInvite: (token: string) => get<{ kind: "signup" | "reset"; invited_by?: string; login?: string }>(`/api/invites/${token}`),
+  checkInvite: (token: string) => get<{ kind: "signup" | "setup" | "reset"; invited_by?: string; login?: string }>(`/api/invites/${token}`),
   redeemInvite: (token: string, body: { name?: string; login?: string; password: string }) =>
     request<Me>("POST", `/api/invites/${token}/redeem`, body),
 

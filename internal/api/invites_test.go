@@ -4,11 +4,14 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/mpizenberg/strapontin/internal/db"
 )
 
 func token(link inviteLink) string { return link.URL[strings.LastIndex(link.URL, "/")+1:] }
@@ -113,3 +116,41 @@ func TestInvitesAndAdmin(t *testing.T) {
 }
 
 func itoa(n int64) string { return strconv.FormatInt(n, 10) }
+
+func TestSetupLink(t *testing.T) {
+	if link := newTestEnv(t).api.SetupLink(); link != "" {
+		t.Fatalf("setup link with existing accounts: %q", link)
+	}
+
+	d, err := db.Open(filepath.Join(t.TempDir(), "t.db"), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { d.Close() })
+	s := New(d, Config{BaseURL: "http://example.test"}, nil)
+	srv := httptest.NewServer(s)
+	t.Cleanup(srv.Close)
+	e := &testEnv{t: t, db: d, api: s, srv: srv}
+	link := s.SetupLink()
+	if !strings.HasPrefix(link, "http://example.test/invitation/") {
+		t.Fatalf("setup link = %q", link)
+	}
+	tok := link[strings.LastIndex(link, "/")+1:]
+
+	guest := e.client("")
+	var info map[string]string
+	guest.do("GET", "/api/invites/"+tok, nil, http.StatusOK, &info)
+	if info["kind"] != "setup" {
+		t.Fatalf("setup info = %v", info)
+	}
+	var me struct{ Login, Role string }
+	guest.do("POST", "/api/invites/"+tok+"/redeem", map[string]string{"name": "Ada", "login": "ada", "password": "ada-pass-long"}, http.StatusOK, &me)
+	if me.Login != "ada" || me.Role != "admin" {
+		t.Fatalf("first account = %+v", me)
+	}
+	guest.do("GET", "/api/admin/overview", nil, http.StatusOK, nil)
+
+	// Once an account exists, the link is spent.
+	e.client("").do("GET", "/api/invites/"+tok, nil, http.StatusNotFound, nil)
+	e.client("").do("POST", "/api/invites/"+tok+"/redeem", map[string]string{"name": "Eve", "login": "eve", "password": "eve-pass-long"}, http.StatusNotFound, nil)
+}

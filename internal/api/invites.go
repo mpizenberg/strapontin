@@ -27,8 +27,34 @@ type inviteLink struct {
 	ExpiresAt string `json:"expires_at"`
 }
 
+func (s *Server) inviteURL(token string) string {
+	return strings.TrimRight(s.cfg.BaseURL, "/") + "/invitation/" + token
+}
+
 func (s *Server) link(token string, expires time.Time) inviteLink {
-	return inviteLink{URL: strings.TrimRight(s.cfg.BaseURL, "/") + "/invitation/" + token, ExpiresAt: expires.Format(time.RFC3339)}
+	return inviteLink{URL: s.inviteURL(token), ExpiresAt: expires.Format(time.RFC3339)}
+}
+
+// SetupLink is the link that creates the first admin, or "" when the database
+// already had an account at startup.
+func (s *Server) SetupLink() string { return s.setupURL }
+
+// lookupInvite returns a usable invite. The setup token lives only in memory
+// and is accepted only while no account exists, which makes it single-use.
+func (s *Server) lookupInvite(q interface {
+	QueryRow(string, ...any) *sql.Row
+}, token string) (*auth.Invite, error) {
+	if s.setupHash == "" || auth.HashToken(token) != s.setupHash {
+		return auth.LookupInvite(q, token)
+	}
+	var members int
+	if err := q.QueryRow(`SELECT count(*) FROM member`).Scan(&members); err != nil {
+		return nil, err
+	}
+	if members > 0 {
+		return nil, auth.ErrInviteInvalid
+	}
+	return &auth.Invite{Kind: "setup"}, nil
 }
 
 func (s *Server) createInvite(w http.ResponseWriter, r *http.Request, m *auth.Member) {
@@ -47,7 +73,7 @@ func (s *Server) createInvite(w http.ResponseWriter, r *http.Request, m *auth.Me
 
 // checkInvite tells the invite page what to ask for.
 func (s *Server) checkInvite(w http.ResponseWriter, r *http.Request) {
-	inv, err := auth.LookupInvite(s.db, r.PathValue("token"))
+	inv, err := s.lookupInvite(s.db, r.PathValue("token"))
 	if errors.Is(err, auth.ErrInviteInvalid) {
 		writeError(w, http.StatusNotFound, "Ce lien n'est plus valable : il a déjà servi ou a expiré. Demandez-en un nouveau.")
 		return
@@ -57,11 +83,12 @@ func (s *Server) checkInvite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	out := map[string]string{"kind": inv.Kind}
-	if inv.Kind == "signup" {
+	switch inv.Kind {
+	case "signup":
 		var name string
 		s.db.QueryRow(`SELECT name FROM member WHERE id = ?`, inv.CreatedBy).Scan(&name)
 		out["invited_by"] = name
-	} else {
+	case "reset":
 		var login string
 		s.db.QueryRow(`SELECT login FROM member WHERE id = ?`, inv.ForMember).Scan(&login)
 		out["login"] = login
@@ -69,8 +96,8 @@ func (s *Server) checkInvite(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, out)
 }
 
-// redeemInvite creates the account (signup) or sets a new password (reset),
-// then signs the person in.
+// redeemInvite creates the account (signup, or setup for the first admin) or
+// sets a new password (reset), then signs the person in.
 func (s *Server) redeemInvite(w http.ResponseWriter, r *http.Request) {
 	var in struct{ Name, Login, Password string }
 	if !decode(w, r, &in) {
@@ -83,7 +110,7 @@ func (s *Server) redeemInvite(w http.ResponseWriter, r *http.Request) {
 	var member *auth.Member
 	var kind string
 	err := s.inTx(func(tx *sql.Tx) error {
-		inv, err := auth.LookupInvite(tx, r.PathValue("token"))
+		inv, err := s.lookupInvite(tx, r.PathValue("token"))
 		if err != nil {
 			return err
 		}
@@ -112,13 +139,20 @@ func (s *Server) redeemInvite(w http.ResponseWriter, r *http.Request) {
 				go s.notify("Une inscription a été refusée : le nombre maximal de membres est atteint.")
 				return errInvalid("Strapontin est complet pour le moment. Prévenez la personne qui vous a envoyé le lien.")
 			}
-			res, err := tx.Exec(`INSERT INTO member (name, login, password_hash, role, invited_by, created_at) VALUES (?, ?, ?, 'member', ?, ?)`,
-				name, login, auth.HashPassword(in.Password), inv.CreatedBy, now)
+			role, invitedBy := "member", sql.NullInt64{Int64: inv.CreatedBy, Valid: true}
+			if inv.Kind == "setup" {
+				role, invitedBy = "admin", sql.NullInt64{}
+			}
+			res, err := tx.Exec(`INSERT INTO member (name, login, password_hash, role, invited_by, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+				name, login, auth.HashPassword(in.Password), role, invitedBy, now)
 			if err != nil {
 				return err
 			}
 			id, _ := res.LastInsertId()
 			member = &auth.Member{ID: id}
+			if inv.Kind == "setup" {
+				return nil // no invite row to mark as used
+			}
 		}
 		_, err = tx.Exec(`UPDATE invite SET used_by = ?, used_at = ? WHERE token_hash = ?`, member.ID, now, inv.Hash)
 		return err
@@ -135,10 +169,15 @@ func (s *Server) redeemInvite(w http.ResponseWriter, r *http.Request) {
 		serverError(w, err)
 		return
 	}
-	auth.LogEvent(s.db, &member.ID, "invite_used")
-	if kind == "signup" {
+	switch kind {
+	case "setup":
+		auth.LogEvent(s.db, &member.ID, "signup")
+	case "signup":
+		auth.LogEvent(s.db, &member.ID, "invite_used")
 		auth.LogEvent(s.db, &member.ID, "signup")
 		go s.notify("Un nouveau membre a rejoint Strapontin.")
+	case "reset":
+		auth.LogEvent(s.db, &member.ID, "invite_used")
 	}
 	if !s.startSession(w, r, member) {
 		return

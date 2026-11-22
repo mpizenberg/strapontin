@@ -12,9 +12,10 @@ import (
 // InviteLifetime is how long a signup or reset link stays valid.
 const InviteLifetime = 7 * 24 * time.Hour
 
-// Invite is an unused, unexpired signup or reset link.
+// Invite is an unused, unexpired signup or reset link, or the first admin's
+// setup link, which has no database row.
 type Invite struct {
-	Kind      string // signup or reset
+	Kind      string // signup, reset or setup
 	CreatedBy int64
 	ForMember int64 // reset only
 	Hash      string

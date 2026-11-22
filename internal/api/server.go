@@ -37,6 +37,8 @@ type Server struct {
 	sources *sources.Client
 	ntfyURL string
 	handler http.Handler
+	// setupHash and setupURL are set when the database had no account at startup.
+	setupHash, setupURL string
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) { s.handler.ServeHTTP(w, r) }
@@ -45,6 +47,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) { s.handler.S
 func New(db *sql.DB, cfg Config, static fs.FS) *Server {
 	fetcher := extract.NewFetcher(cfg.AllowPrivateFetch)
 	s := &Server{db: db, cfg: cfg, static: static, logins: auth.NewLoginLimiter(), fetcher: fetcher, sources: sources.New(fetcher), ntfyURL: "https://ntfy.sh"}
+	var members int
+	if err := db.QueryRow(`SELECT count(*) FROM member`).Scan(&members); err != nil {
+		log.Printf("count members: %v", err)
+	}
+	if members == 0 {
+		var token string
+		token, s.setupHash = auth.NewToken()
+		s.setupURL = s.inviteURL(token)
+	}
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /healthz", s.healthz)
