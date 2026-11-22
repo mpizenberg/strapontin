@@ -510,10 +510,11 @@ dokku domains:set strapontin <domain>
 dokku ports:set strapontin http:80:8080
 dokku letsencrypt:enable strapontin
 dokku checks:disable strapontin
+dokku registry:login ghcr.io <github-user> <token>                # classic token with read:packages
 ```
 
-- **Deploying.** `git push dokku main`. Dokku finds the `Dockerfile` and builds the image on the VPS.
-  - If the VPS is too small to build Node and Go comfortably (about 1 GB of RAM), build the image locally, push it to the VPS with `docker save | ssh … docker load`, then run `dokku git:from-image strapontin strapontin:<tag>`.
+- **Image build.** The VPS never builds. On each push to `main`, GitHub Actions (`.github/workflows/image.yml`) runs `make check`, builds the `Dockerfile` for `linux/amd64` and pushes it to `ghcr.io/mpizenberg/strapontin` with the tags `sha-<commit>` and `latest`. The package is private, like the repository.
+- **Deploying.** `dokku git:from-image strapontin ghcr.io/mpizenberg/strapontin:sha-<commit>`. Dokku pulls the image and restarts the app. The commit tag is used rather than `latest` because Dokku only redeploys when the image reference changes.
 - **Zero-downtime deploys are disabled** (`checks:disable`). Otherwise Dokku starts the new container while the old one still runs. Two processes would then share the SQLite file, and the new one would migrate the schema under the old code. A restart of a few seconds is acceptable here.
 - **The database lives only on the mounted volume.** Nothing is written inside the container, which is replaced on every deploy.
 - **The first admin** is created with `dokku run strapontin admin create`. The arguments are passed to the binary's `ENTRYPOINT`.
@@ -537,7 +538,8 @@ internal/auth/              sessions, passwords, invites, rate limiting
 internal/api/               handlers, middleware, admin stats queries
 web/                        frontend (section 9); web/dist is embedded
 Dockerfile  .dockerignore   container image (section 11.1)
-Makefile                    dev, build, test, image
+.github/workflows/image.yml checks, then builds and pushes the image (section 11.2)
+Makefile                    check, build, dev
 ```
 
 ## 13. Build order
