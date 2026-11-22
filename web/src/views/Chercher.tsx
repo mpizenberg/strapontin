@@ -40,8 +40,10 @@ export function Chercher() {
   };
 
   const onInput = (value: string) => {
+    // The field is derived from the URL, so the URL keeps the text as typed:
+    // trimming it would drop a trailing space on every keystroke.
     setText(value);
-    navigate(`/chercher${value.trim() ? `?q=${encodeURIComponent(value.trim())}` : ""}`, { replace: true });
+    navigate(`/chercher${value ? `?q=${encodeURIComponent(value)}` : ""}`, { replace: true });
   };
 
   return (
