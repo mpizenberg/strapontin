@@ -510,10 +510,9 @@ dokku domains:set strapontin <domain>
 dokku ports:set strapontin http:80:8080
 dokku letsencrypt:enable strapontin
 dokku checks:disable strapontin
-dokku registry:login ghcr.io <github-user> <token>                # classic token with read:packages
 ```
 
-- **Image build.** The VPS never builds. On each push to `main`, GitHub Actions (`.github/workflows/image.yml`) runs `make check`, builds the `Dockerfile` for `linux/amd64` and pushes it to `ghcr.io/mpizenberg/strapontin` with the tags `sha-<commit>` and `latest`. The package is private, like the repository.
+- **Image build.** The VPS never builds. On each push to `main`, GitHub Actions (`.github/workflows/image.yml`) runs `make check`, builds the `Dockerfile` for `linux/amd64` and pushes it to `ghcr.io/mpizenberg/strapontin` with the tags `sha-<commit>` and `latest`. The package is public; if it were private, the VPS would first need `dokku registry:login ghcr.io <github-user> <token>` with a classic `read:packages` token.
 - **Deploying.** `dokku git:from-image strapontin ghcr.io/mpizenberg/strapontin:sha-<commit>`. Dokku pulls the image and restarts the app. The commit tag is used rather than `latest` because Dokku only redeploys when the image reference changes.
 - **Zero-downtime deploys are disabled** (`checks:disable`). Otherwise Dokku starts the new container while the old one still runs. Two processes would then share the SQLite file, and the new one would migrate the schema under the old code. A restart of a few seconds is acceptable here.
 - **The database lives only on the mounted volume.** Nothing is written inside the container, which is replaced on every deploy.

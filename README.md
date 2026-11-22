@@ -40,13 +40,9 @@ docker run -p 8080:8080 -v "$PWD/data:/data" ghcr.io/mpizenberg/strapontin:lates
 
 ## Deploy on Dokku
 
-One-time setup on the server: create the app, mount `/data` and set the configuration as described in ARCHITECTURE §11.2. The package is private, so Dokku also needs to log in to the registry, with a classic GitHub token that has the `read:packages` scope:
+One-time setup on the server: create the app, mount `/data` and set the configuration as described in ARCHITECTURE §11.2. If the GHCR package is private, Dokku also needs to log in to the registry with a classic GitHub token that has the `read:packages` scope (`dokku registry:login ghcr.io <github-user> <token>`). A public package needs no login.
 
-```
-dokku registry:login ghcr.io <github-user> <token>
-```
-
-Then deploy a commit's image:
+Deploy a commit's image:
 
 ```
 dokku git:from-image strapontin ghcr.io/mpizenberg/strapontin:sha-<commit>

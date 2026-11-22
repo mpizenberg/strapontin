@@ -17,4 +17,4 @@ dev:
 	go run . serve
 
 clean:
-	rm -rf strapontin web/dist/assets web/dist/index.html
+	rm -rf strapontin web/dist/*
