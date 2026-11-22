@@ -1,5 +1,5 @@
 import type {
-  Candidate, Favorite, ImportResult, Me, PersonRef, Outing, OutingInput, Person, Production, ProductionInput, Role, SearchResult, Status, Venue,
+  AgendaEvent, Candidate, Favorite, ImportResult, Me, PersonRef, Outing, OutingInput, Person, Production, ProductionInput, Role, SearchResult, Status, Venue, WikidataEntity,
 } from "./types";
 
 export class ApiError extends Error {
@@ -44,6 +44,9 @@ export const api = {
   importURL: (url: string) => request<ImportResult>("POST", "/api/import", { url }),
   parseCredits: (text: string) =>
     request<{ person: PersonRef; role: string; character: string; candidates?: Candidate[] }[]>("POST", "/api/credits/parse", { text }),
+  agendas: (q: string, source: "openagenda" | "tourisme") => get<AgendaEvent[]>(`/api/sources/search?${qs({ q, source })}`),
+  wikidata: (q: string) => get<WikidataEntity[]>(`/api/wikidata/search?${qs({ q })}`),
+  linkWikidata: (personID: number, id: string) => request<void>("PUT", `/api/people/${personID}/wikidata`, { id }),
   search: (q: string, kind = "") => get<SearchResult>(`/api/search?${qs({ q, kind })}`),
   production: (id: number) => get<Production>(`/api/productions/${id}`),
   createProduction: (input: ProductionInput & { status?: Status; snapshot_id?: number; image?: string }) =>

@@ -1,4 +1,4 @@
-import { createMemo, createSignal, For, refresh, Show } from "solid-js";
+import { createMemo, createSignal, Errored, For, Loading, refresh, Show } from "solid-js";
 import { api } from "../api";
 import { back } from "../router";
 import { aria, capitalize, plural, year } from "../format";
@@ -17,6 +17,7 @@ function groupByRole(p: Person) {
 export function PersonView(props: { id: number }) {
   const p = createMemo(() => api.person(props.id));
   const [renaming, setRenaming] = createSignal(false);
+  const [linking, setLinking] = createSignal(false);
   const productions = () => new Set(p().credits.map((c) => c.production.id)).size;
   const roleSummary = () => capitalize([...new Set(p().credits.map((c) => roleLabel(c.role)))].join(", "));
   const wikidata = () => p().external_ids.find((e) => e.scheme === "wikidata")?.value;
@@ -41,7 +42,7 @@ export function PersonView(props: { id: number }) {
             <button class="btn" aria-pressed={aria(p().favorite)} onClick={toggleFavorite}>
               <span class="star">{p().favorite ? "★" : "☆"}</span> Favori
             </button>
-            <Show when={wikidata()}>
+            <Show when={wikidata()} fallback={<button class="btn" onClick={() => setLinking(true)}>Lier à Wikidata</button>}>
               {(q) => <a class="btn" href={`https://www.wikidata.org/wiki/${q()}`} target="_blank" rel="noopener noreferrer">Wikidata ↗</a>}
             </Show>
           </div>
@@ -71,6 +72,13 @@ export function PersonView(props: { id: number }) {
         </For>
       </main>
 
+      <Show when={linking()}>
+        <WikidataSheet name={p().name} onClose={() => setLinking(false)} onPick={async (id) => {
+          await api.linkWikidata(props.id, id);
+          setLinking(false);
+          refresh(p);
+        }} />
+      </Show>
       <Show when={renaming()}>
         <RenameSheet name={p().name} onClose={() => setRenaming(false)} onSave={async (name) => {
           await api.renamePerson(props.id, name);
@@ -89,6 +97,40 @@ function RenameSheet(props: { name: string; onClose: () => void; onSave: (name: 
       <p class="meta">Corrige le nom sur toutes les fiches où la personne apparaît.</p>
       <input class="input" aria-label="Nom" value={name()} onInput={(e) => setName(e.currentTarget.value)} />
       <button class="btn primary block" onClick={() => props.onSave(name())}>Enregistrer</button>
+    </Sheet>
+  );
+}
+
+/** Finds the Wikidata item for a person; the search runs once, with the name as typed. */
+function WikidataSheet(props: { name: string; onClose: () => void; onPick: (id: string) => Promise<void> }) {
+  const [q, setQ] = createSignal(() => props.name);
+  const [asked, setAsked] = createSignal(() => props.name);
+  const results = createMemo(() => api.wikidata(asked()));
+  const [error, setError] = createSignal("");
+  const pick = (id: string) => props.onPick(id).catch((e: Error) => setError(e.message));
+  return (
+    <Sheet title="Lier à Wikidata" onClose={props.onClose}>
+      <form class="input-group" onSubmit={(e) => { e.preventDefault(); setAsked(q()); }}>
+        <input class="input" aria-label="Nom" value={q()} onInput={(e) => setQ(e.currentTarget.value)} />
+        <button class="btn" type="submit">Chercher</button>
+      </form>
+      <Show when={error()}><p class="notice warn">{error()}</p></Show>
+      <Errored fallback={(err) => <p class="notice warn">{err() instanceof Error ? (err() as Error).message : String(err())}</p>}>
+        <Loading fallback={<p class="loading">Recherche…</p>}>
+          <Show when={results().length > 0} fallback={<p class="meta">Aucune entrée.</p>}>
+            <ul class="list">
+              <For each={results()}>
+                {(e) => (
+                  <li><button class="row" onClick={() => pick(e.id)}>
+                    <span class="grow"><span class="name">{e.label}</span><Show when={e.description}><br /><span class="meta">{e.description}</span></Show></span>
+                    <span class="meta">{e.id}</span>
+                  </button></li>
+                )}
+              </For>
+            </ul>
+          </Show>
+        </Loading>
+      </Errored>
     </Sheet>
   );
 }

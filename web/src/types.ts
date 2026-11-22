@@ -174,3 +174,20 @@ export interface OutingInput {
   rating: number | null;
   comment: string;
 }
+
+/** A show found in an outside agenda; picking it imports its page. */
+export interface AgendaEvent {
+  title: string;
+  venue?: string;
+  city?: string;
+  starts_on?: string;
+  ends_on?: string;
+  url: string;
+  source: "openagenda" | "tourisme";
+}
+
+export interface WikidataEntity {
+  id: string;
+  label: string;
+  description?: string;
+}

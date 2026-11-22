@@ -295,11 +295,11 @@ Every step is triggered by a member.
 
 ## 6. External sources (`internal/sources`)
 
-Each source is one file returning a common `Candidate{Title, Venue, Dates, URL, Source}` type, and is called only from a member's search.
+Each source is one file returning a common `Candidate{Title, Venue, City, StartsOn, EndsOn, URL, Source}` type, and is called only from a member's search. Chercher queries the local catalogue as you type, and the outside agendas only when the member submits, one request per source so a source that is down doesn't hide the others.
 
 | Source | Use | Notes |
 |---|---|---|
-| OpenAgenda | title search, Toulouse area | Agendas 50522407 (Toulouse Métropole) and 42448083 (city of Toulouse). Uses the keyless endpoint `openagenda.com/api/agendas/{uid}/events?search=…`, with no API key. That endpoint is internal and undocumented, so all of it stays in `openagenda.go`. If it breaks, the search shows "source unavailable" and URL import still works. |
+| OpenAgenda | title search, Toulouse area | Agendas 50522407 (Toulouse Métropole) and 42448083 (city of Toulouse). Uses the keyless endpoint `openagenda.com/api/agendas/{uid}/events?search=…`, with no API key. That endpoint is internal and undocumented, so all of it stays in `openagenda.go`. If it breaks, the search shows "source unavailable" and URL import still works. Results whose title lacks the query words are dropped, since the search also matches venue names. Picking a result imports the event's openagenda.com page, which carries JSON-LD. |
 | Toulouse tourism office | title search for venues absent from OpenAgenda | `wp-json/wp/v2/agenda?search=`. Finished events disappear. |
 | Wikidata | linking people and works | `wbsearchentities` |
 | BnF, IdRef | later | identifiers for authors |
@@ -351,6 +351,7 @@ POST   /api/import          {url}  → draft matched against the catalogue, or t
 POST   /api/credits/parse   {text} → credits read from pasted text, matched against people
 GET    /api/sources/search  ?q=&source=openagenda|tourisme
 GET    /api/wikidata/search ?q=
+PUT    /api/people/{id}/wikidata      {id: "Q…"} links a person; an empty id unlinks
 
 GET    /api/roles                     public: role keys with their French labels
 GET    /api/search          ?q=&kind=   local FTS (productions, people, venues, works) and own comments

@@ -18,6 +18,7 @@ import (
 type testEnv struct {
 	t      *testing.T
 	db     *sql.DB
+	api    *Server
 	srv    *httptest.Server
 	member int64
 	admin  int64
@@ -32,9 +33,10 @@ func newTestEnv(t *testing.T) *testEnv {
 	t.Cleanup(func() { d.Close() })
 	admin, _ := auth.CreateMember(d, "Admin", "admin", "admin-pass", "admin", nil)
 	member, _ := auth.CreateMember(d, "Lucie Martin", "lucie", "lucie-pass", "member", &admin)
-	srv := httptest.NewServer(New(d, Config{BaseURL: "http://example.test", AllowPrivateFetch: true}, nil))
+	s := New(d, Config{BaseURL: "http://example.test", AllowPrivateFetch: true}, nil)
+	srv := httptest.NewServer(s)
 	t.Cleanup(srv.Close)
-	return &testEnv{t: t, db: d, srv: srv, member: member, admin: admin}
+	return &testEnv{t: t, db: d, api: s, srv: srv, member: member, admin: admin}
 }
 
 // client returns an HTTP client signed in as login, or anonymous when login is empty.

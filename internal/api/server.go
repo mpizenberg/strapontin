@@ -14,6 +14,7 @@ import (
 
 	"github.com/mpizenberg/strapontin/internal/auth"
 	"github.com/mpizenberg/strapontin/internal/extract"
+	"github.com/mpizenberg/strapontin/internal/sources"
 )
 
 // Config holds what the handlers need from the command line.
@@ -31,11 +32,16 @@ type Server struct {
 	static  fs.FS
 	logins  *auth.Limiter
 	fetcher *extract.Fetcher
+	sources *sources.Client
+	handler http.Handler
 }
 
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) { s.handler.ServeHTTP(w, r) }
+
 // New returns the root handler. static is the frontend build; it may be nil in tests.
-func New(db *sql.DB, cfg Config, static fs.FS) http.Handler {
-	s := &Server{db: db, cfg: cfg, static: static, logins: auth.NewLoginLimiter(), fetcher: extract.NewFetcher(cfg.AllowPrivateFetch)}
+func New(db *sql.DB, cfg Config, static fs.FS) *Server {
+	fetcher := extract.NewFetcher(cfg.AllowPrivateFetch)
+	s := &Server{db: db, cfg: cfg, static: static, logins: auth.NewLoginLimiter(), fetcher: fetcher, sources: sources.New(fetcher)}
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /healthz", s.healthz)
@@ -47,6 +53,9 @@ func New(db *sql.DB, cfg Config, static fs.FS) http.Handler {
 
 	mux.HandleFunc("POST /api/import", s.member(s.importURL))
 	mux.HandleFunc("POST /api/credits/parse", s.member(s.parseCredits))
+	mux.HandleFunc("GET /api/sources/search", s.member(s.searchSources))
+	mux.HandleFunc("GET /api/wikidata/search", s.member(s.searchWikidata))
+	mux.HandleFunc("PUT /api/people/{id}/wikidata", s.member(s.linkWikidata))
 	mux.HandleFunc("POST /api/productions", s.member(s.createProduction))
 	mux.HandleFunc("GET /api/productions/{id}", s.member(s.getProduction))
 	mux.HandleFunc("PUT /api/productions/{id}", s.member(s.updateProduction))
@@ -70,7 +79,8 @@ func New(db *sql.DB, cfg Config, static fs.FS) http.Handler {
 	mux.HandleFunc("/", s.frontend)
 
 	csrf := http.NewCrossOriginProtection()
-	return securityHeaders(csrf.Handler(s.session(mux)))
+	s.handler = securityHeaders(csrf.Handler(s.session(mux)))
+	return s
 }
 
 const sessionCookie = "strapontin_session"
