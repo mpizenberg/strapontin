@@ -352,7 +352,7 @@ POST   /api/import/save     draft  → production
 GET    /api/sources/search  ?q=&source=openagenda|tourisme
 GET    /api/wikidata/search ?q=
 
-GET    /api/roles                     role keys with their French labels
+GET    /api/roles                     public: role keys with their French labels
 GET    /api/search          ?q=&kind=   local FTS (productions, people, venues, works) and own comments
 POST   /api/productions               production form, plus an optional first outing status
 GET|PUT /api/productions/{id}         PUT replaces credits and runs (run ids kept) and writes a revision
@@ -379,10 +379,10 @@ Any path that is not under `/api/` or a static asset serves `index.html`.
 web/
   index.html  manifest.webmanifest  vite.config.ts  package.json  tsconfig.json
   src/
-    main.tsx  router.ts  api.ts  types.ts
-    views/       Journal, Wishlist, Add, Production, Person, Work, Venue, Search,
-                 Login, Invite, Admin
-    components/  CreditEditor, PersonPicker, OutingForm, Rating, ...
+    main.tsx  app.tsx  router.ts  api.ts  types.ts  roles.ts  format.ts
+    views/       AVoir, Journal, Chercher, Production, ProductionForm, Person, Venue,
+                 Moi, Login, Invite, Admin
+    components/  Picker, OutingSheet, Sheet, Stars, SummaryRow, Poster, TabBar, ...
   styles/
     tokens.css  base.css  components.css
 ```
@@ -401,12 +401,15 @@ web/
   - The plugin compiles JSX with the native `@solidjs/compiler`, which falls back to WebAssembly. Babel is an optional peer dependency and is not installed.
   - `render` is imported from `@solidjs/web`, and `tsconfig.json` sets `"jsxImportSource": "@solidjs/web"`.
   - The local npm configuration has `min-release-age` set to 7 days. Solid 2.0.0 was published on 2026-11-17, so the Solid packages (`solid-js`, `@solidjs/web`, `@solidjs/vite-plugin`) are installed as an explicit exception: `npm install --min-release-age=0 <those packages>`. That only changes how versions are picked; the lockfile pins the result. Other packages follow the normal rule.
-- **Views.**
-  - The journal lists seen outings by date.
-  - The wishlist shows wants.
-  - "Add" lets you paste a URL or search by title.
-  - Production pages show the credits, your outings and the poster.
-  - Person pages list every production they appear in and carry the favourite toggle.
+- **Views.** Four tabs: À voir, Journal, Chercher, Moi. The app opens on À voir. The screens follow `design/mockups/`.
+  - À voir lists wishes by urgency: by end of run, then undated ones, then finished runs with one-tap "Retirer" / "Vu".
+  - The journal lists seen outings by month.
+  - Chercher has one field: it searches the catalogue as you type, and a pasted URL starts an import.
+  - Production pages show your outings first, then runs, credits, description and other stagings of the same text.
+  - One form (`ProductionForm`) serves manual entry, import review and edits. There is no Work view: the text is picked inside the form.
+  - Person and venue pages list their productions and carry the favourite toggle and a private note.
+  - Moi gathers favourites, invites, export, account deletion and the admin entry.
+  - UI labels avoid gender agreement for people: the app cannot know anyone's gender.
 - **Routing.** It is hand-written on the History API, with a path pattern mapped to a view.
 - **API client.** `api.ts` wraps `fetch`, and `types.ts` mirrors the Go JSON types by hand.
 - **PWA.** The manifest makes the app installable. On Android, `share_target` sends a shared page to `/add?url=…`; on iOS, the member pastes the URL instead. A service worker is added only if installation requires one, and none caches anything offline in v1.
@@ -420,7 +423,7 @@ web/
 
 ## 10. Security
 
-- **Exposed surface.** Only login, invite checking and redemption, and static assets are public. Everything else requires a session; the import endpoint in particular must never act as an open proxy.
+- **Exposed surface.** Only login, invite checking and redemption, the role list and static assets are public. Everything else requires a session; the import endpoint in particular must never act as an open proxy.
 - **Cross-site protection.** `http.CrossOriginProtection` from the standard library covers every mutating request, alongside the SameSite cookie.
 - **Passwords.** They are hashed with argon2id.
 - **Login limits.** In memory, at most 10 attempts per 15 minutes per IP and per login. Failures are recorded as `login_failed` events.

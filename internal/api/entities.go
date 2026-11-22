@@ -278,6 +278,7 @@ func (s *Server) search(w http.ResponseWriter, r *http.Request, m *auth.Member) 
 	writeJSON(w, http.StatusOK, res)
 }
 
-func (s *Server) roles(w http.ResponseWriter, r *http.Request, m *auth.Member) {
+// roles is public: the frontend loads this constant list before sign-in.
+func (s *Server) roles(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, Roles)
 }

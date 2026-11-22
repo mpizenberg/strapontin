@@ -38,7 +38,7 @@ func New(db *sql.DB, cfg Config, static fs.FS) http.Handler {
 	mux.HandleFunc("POST /api/login", s.login)
 	mux.HandleFunc("POST /api/logout", s.member(s.logout))
 	mux.HandleFunc("GET /api/me", s.member(s.me))
-	mux.HandleFunc("GET /api/roles", s.member(s.roles))
+	mux.HandleFunc("GET /api/roles", s.roles)
 	mux.HandleFunc("GET /api/search", s.member(s.search))
 
 	mux.HandleFunc("POST /api/productions", s.member(s.createProduction))
