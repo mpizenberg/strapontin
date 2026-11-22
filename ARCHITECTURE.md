@@ -481,9 +481,11 @@ COPY . .
 COPY --from=web /src/web/dist ./web/dist
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /strapontin .
 
-# 3. Runtime: CA certificates, tzdata, non-root user, no shell
-FROM gcr.io/distroless/static-debian12:nonroot
+# 3. Runtime: CA certificates, tzdata, no shell. uid 32767 is the owner Dokku
+# gives storage directories by default.
+FROM gcr.io/distroless/static-debian12
 COPY --from=go /strapontin /strapontin
+USER 32767:32767
 ENV DATA_DIR=/data PORT=8080
 EXPOSE 8080
 VOLUME /data
@@ -504,17 +506,18 @@ One-time setup on the VPS:
 dokku apps:create strapontin
 dokku storage:ensure-directory strapontin
 dokku storage:mount strapontin /var/lib/dokku/data/storage/strapontin:/data
-chown -R 65532:65532 /var/lib/dokku/data/storage/strapontin   # distroless "nonroot" user
 dokku config:set strapontin TRUST_PROXY=1 BASE_URL=https://<domain>
 dokku domains:set strapontin <domain>
 dokku ports:set strapontin http:80:8080
 dokku letsencrypt:enable strapontin
-dokku checks:disable strapontin
 ```
+
+The dokku-tui create wizard runs the same steps.
 
 - **Image build.** The VPS never builds. On each push to `main`, GitHub Actions (`.github/workflows/image.yml`) runs `make check`, builds the `Dockerfile` for `linux/amd64` and pushes it to `ghcr.io/mpizenberg/strapontin` with the tags `sha-<commit>` and `latest`. The package is public; if it were private, the VPS would first need `dokku registry:login ghcr.io <github-user> <token>` with a classic `read:packages` token.
 - **Deploying.** `dokku git:from-image strapontin ghcr.io/mpizenberg/strapontin:sha-<commit>`. Dokku pulls the image and restarts the app. The commit tag is used rather than `latest` because Dokku only redeploys when the image reference changes.
-- **Zero-downtime deploys are disabled** (`checks:disable`). Otherwise Dokku starts the new container while the old one still runs. Two processes would then share the SQLite file, and the new one would migrate the schema under the old code. A restart of a few seconds is acceptable here.
+- **Directory owner.** The image runs as uid 32767, the owner `storage:ensure-directory` gives the directory by default, so no `chown` is needed.
+- **One server at a time.** During a deploy, Dokku starts the new container while the old one still runs, then stops the old one. Two processes would then share the SQLite file, and the new one would migrate the schema under the old code. So `serve` first takes an exclusive `flock` on `/data/strapontin.lock` and waits for the old container to exit, then opens the database. Dokku's default check only verifies that the container is still running after 10 seconds, which a waiting container passes. The site is unreachable for the few seconds between the switch and the new server listening, which is acceptable here.
 - **The database lives only on the mounted volume.** Nothing is written inside the container, which is replaced on every deploy.
 - **The first admin** is created with `dokku run strapontin admin create`. The arguments are passed to the binary's `ENTRYPOINT`.
 

@@ -154,7 +154,34 @@ func withDB(cfg config, f func(*sql.DB) error) error {
 	return f(d)
 }
 
+// lockDataDir blocks until no other server uses the data directory. During a
+// zero-downtime deploy, Dokku starts the new container before stopping the old
+// one: waiting here keeps the new one from migrating the schema under the old
+// code. The lock lasts until the returned file is closed.
+func lockDataDir(dataDir string) (*os.File, error) {
+	if err := os.MkdirAll(dataDir, 0o750); err != nil {
+		return nil, err
+	}
+	f, err := os.OpenFile(filepath.Join(dataDir, "strapontin.lock"), os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		return nil, err
+	}
+	if syscall.Flock(int(f.Fd()), syscall.LOCK_EX|syscall.LOCK_NB) != nil {
+		log.Printf("another server uses %s, waiting for it to stop", dataDir)
+		if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX); err != nil {
+			f.Close()
+			return nil, err
+		}
+	}
+	return f, nil
+}
+
 func serve(cfg config) error {
+	lock, err := lockDataDir(cfg.dataDir)
+	if err != nil {
+		return err
+	}
+	defer lock.Close()
 	d, err := openDB(cfg)
 	if err != nil {
 		return err

@@ -15,9 +15,11 @@ COPY . .
 COPY --from=web /src/web/dist ./web/dist
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /strapontin .
 
-# 3. Runtime: CA certificates, tzdata, non-root user, no shell
-FROM gcr.io/distroless/static-debian12:nonroot
+# 3. Runtime: CA certificates, tzdata, no shell. uid 32767 is the owner Dokku
+# gives storage directories by default.
+FROM gcr.io/distroless/static-debian12
 COPY --from=go /strapontin /strapontin
+USER 32767:32767
 ENV DATA_DIR=/data PORT=8080
 EXPOSE 8080
 VOLUME /data
