@@ -507,11 +507,14 @@ func (s *Server) getProduction(w http.ResponseWriter, r *http.Request, m *auth.M
 }
 
 // createProduction saves a new production, and the member's first outing
-// when a status is given ("Envie" / "Déjà vu" on the form).
+// when a status is given. An imported draft also links its snapshot and
+// downloads its poster.
 func (s *Server) createProduction(w http.ResponseWriter, r *http.Request, m *auth.Member) {
 	var in struct {
 		productionInput
-		Status string `json:"status"`
+		Status     string `json:"status"`
+		SnapshotID int64  `json:"snapshot_id"`
+		Image      string `json:"image"`
 	}
 	if !decode(w, r, &in) {
 		return
@@ -532,6 +535,11 @@ func (s *Server) createProduction(w http.ResponseWriter, r *http.Request, m *aut
 		writeSaveError(w, err)
 		return
 	}
+	if in.SnapshotID != 0 {
+		s.db.Exec(`UPDATE snapshot SET production_id = ? WHERE id = ? AND production_id IS NULL`, id, in.SnapshotID)
+		auth.LogEvent(s.db, &m.ID, "import")
+	}
+	s.savePoster(r.Context(), id, in.Image)
 	writeJSON(w, http.StatusCreated, map[string]int64{"id": id})
 }
 

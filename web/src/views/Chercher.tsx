@@ -3,10 +3,29 @@ import { api } from "../api";
 import { navigate, route } from "../router";
 import { SummaryRow } from "../components/SummaryRow";
 
+/** The first web address in a text: a pasted link, or a link shared with some words around it. */
+export function findURL(text: string): string | undefined {
+  return text.match(/https?:\/\/\S+/i)?.[0] ?? (/^www\.\S+$/i.test(text.trim()) ? text.trim() : undefined);
+}
+
+const importPath = (url: string) => `/spectacles/nouveau?import=${encodeURIComponent(url)}`;
+
 export function Chercher() {
   const [text, setText] = createSignal(() => route().query.get("q") ?? "");
   const query = createMemo(() => text().trim());
-  const results = createMemo(() => (query().length < 2 ? null : api.search(query())));
+  const url = createMemo(() => findURL(query()));
+  const results = createMemo(() => (query().length < 2 || url() ? null : api.search(query())));
+
+  const paste = async () => {
+    try {
+      const t = await navigator.clipboard.readText();
+      const u = findURL(t);
+      if (u) navigate(importPath(u));
+      else onInput(t);
+    } catch {
+      // Clipboard access refused: the member can still paste into the field.
+    }
+  };
   const empty = () => {
     const r = results();
     return !!r && r.productions.length + r.people.length + r.venues.length === 0;
@@ -23,9 +42,20 @@ export function Chercher() {
       <main class="page">
         <label class="search-field">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6" /><path d="m20 20-4.5-4.5" /></svg>
-          <input type="search" placeholder="Titre, artiste, lieu…" aria-label="Chercher" autocomplete="off"
+          <input type="search" placeholder="Titre, artiste, lieu… ou lien" aria-label="Chercher" autocomplete="off"
             value={text()} onInput={(e) => onInput(e.currentTarget.value)} />
+          <button class="btn ghost small" onClick={(e) => { e.preventDefault(); paste(); }}>Coller</button>
         </label>
+
+        <Show when={url()}>
+          {(u) => (
+            <div class="card">
+              <p><strong>Importer cette page ?</strong></p>
+              <p class="meta">Strapontin lit la page du spectacle et vous propose une fiche à vérifier.</p>
+              <a class="btn primary block" href={importPath(u())}>Lire la page</a>
+            </div>
+          )}
+        </Show>
 
         <Loading fallback={<p class="loading">Recherche…</p>}>
           <Show when={results()}>

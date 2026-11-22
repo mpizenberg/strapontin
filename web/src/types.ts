@@ -137,15 +137,33 @@ export interface SearchResult {
   works: (WorkRef & { id: number })[];
 }
 
+export interface Candidate {
+  id: number;
+  name: string;
+  roles?: string[];
+}
+
 // What the production form sends. References without an id create new rows.
+// candidates and guessed only come from an import, for the review.
 export interface ProductionInput {
   title: string;
   work: WorkRef | null;
   company: string;
   description: string;
   url: string;
-  credits: { person: PersonRef; role: string; character: string }[];
-  runs: { id?: number; venue: VenueRef; starts_on: string; ends_on: string }[];
+  credits: { person: PersonRef; role: string; character: string; candidates?: Candidate[] }[];
+  runs: { id?: number; venue: VenueRef; starts_on: string; ends_on: string; guessed?: boolean }[];
+}
+
+export interface ImportDraft extends ProductionInput {
+  snapshot_id: number;
+  image?: string;
+  source: "jsonld" | "microdata" | "opengraph" | "html";
+}
+
+export interface ImportResult {
+  duplicate?: Summary;
+  draft?: ImportDraft;
 }
 
 export interface OutingInput {

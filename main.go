@@ -27,6 +27,7 @@ type config struct {
 	dataDir    string
 	trustProxy bool
 	baseURL    string
+	localFetch bool
 }
 
 func env(key, fallback string) string {
@@ -64,6 +65,7 @@ func main() {
 	fs.StringVar(&cfg.dataDir, "data", env("DATA_DIR", "./data"), "database and backups directory (DATA_DIR)")
 	fs.BoolVar(&cfg.trustProxy, "trust-proxy", os.Getenv("TRUST_PROXY") == "1", "read the client IP from X-Forwarded-For (TRUST_PROXY=1)")
 	fs.StringVar(&cfg.baseURL, "base-url", env("BASE_URL", "http://localhost:8080"), "public URL, used in invite links (BASE_URL)")
+	fs.BoolVar(&cfg.localFetch, "allow-local-fetch", false, "development only: let imports read local and private addresses")
 	fs.Parse(args)
 
 	var err error
@@ -116,7 +118,7 @@ func serve(cfg config) error {
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.port,
-		Handler:           api.New(d, api.Config{BaseURL: cfg.baseURL, TrustProxy: cfg.trustProxy}, frontendFS()),
+		Handler:           api.New(d, api.Config{BaseURL: cfg.baseURL, TrustProxy: cfg.trustProxy, AllowPrivateFetch: cfg.localFetch}, frontendFS()),
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      60 * time.Second,

@@ -1,5 +1,5 @@
 import type {
-  Favorite, Me, Outing, OutingInput, Person, Production, ProductionInput, Role, SearchResult, Status, Venue,
+  Favorite, ImportResult, Me, Outing, OutingInput, Person, Production, ProductionInput, Role, SearchResult, Status, Venue,
 } from "./types";
 
 export class ApiError extends Error {
@@ -41,9 +41,10 @@ export const api = {
   logout: () => request<void>("POST", "/api/logout"),
   roles: () => get<Role[]>("/api/roles"),
 
+  importURL: (url: string) => request<ImportResult>("POST", "/api/import", { url }),
   search: (q: string, kind = "") => get<SearchResult>(`/api/search?${qs({ q, kind })}`),
   production: (id: number) => get<Production>(`/api/productions/${id}`),
-  createProduction: (input: ProductionInput & { status?: Status }) =>
+  createProduction: (input: ProductionInput & { status?: Status; snapshot_id?: number; image?: string }) =>
     request<{ id: number }>("POST", "/api/productions", input),
   updateProduction: (id: number, input: ProductionInput) => request<{ id: number }>("PUT", `/api/productions/${id}`, input),
   person: (id: number) => get<Person>(`/api/people/${id}`),

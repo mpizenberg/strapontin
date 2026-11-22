@@ -284,8 +284,8 @@ Every step is triggered by a member.
    - Names are split on commas, "et", "&" and "/".
    - Rules specific to one site live in a small map keyed by host, added only when a venue needs them (for example the Théâtre de la Cité and Garonne, whose credits run together).
 5. **Match.** Proposed names are compared with existing `person.name_key` values, and existing productions with the `external_id` `url` value. Wikidata search is offered when a member wants to link a person.
-6. **Draft.** The API returns a draft. The member corrects it in the UI and saves. Saving creates or updates catalogue rows, writes a `revision` and links the snapshot.
-7. **Image.** The `og:image` or JSON-LD `image` is downloaded once and stored in `image`.
+6. **Draft.** The API returns a draft in the shape of the production form, with homonyms as candidates and a venue guessed from earlier imports of the same site when the page names none. The member corrects it in the form and saves through `POST /api/productions`, which creates the catalogue rows and links the snapshot. A URL already in the catalogue (also after a redirect) returns that production instead of a draft.
+7. **Image.** The `og:image` or JSON-LD `image` is downloaded once on save and stored in `image` (JPEG, PNG, WebP, GIF or AVIF; never SVG). The review form doesn't preview it, since pages only load images from the app itself.
 
 `extractor_version` is bumped whenever the parser changes. A CLI command re-runs extraction on stored snapshots without touching the sites again.
 
@@ -347,14 +347,14 @@ GET    /api/invites/{token}           public: check an invite
 POST   /api/invites/{token}/redeem    public: create the account or reset the password
 GET    /api/me
 
-POST   /api/import          {url}  → draft
-POST   /api/import/save     draft  → production
+POST   /api/import          {url}  → draft matched against the catalogue, or the existing production
 GET    /api/sources/search  ?q=&source=openagenda|tourisme
 GET    /api/wikidata/search ?q=
 
 GET    /api/roles                     public: role keys with their French labels
 GET    /api/search          ?q=&kind=   local FTS (productions, people, venues, works) and own comments
-POST   /api/productions               production form, plus an optional first outing status
+POST   /api/productions               production form, plus an optional first outing status;
+                                      an imported draft adds snapshot_id and image (poster URL)
 GET|PUT /api/productions/{id}         PUT replaces credits and runs (run ids kept) and writes a revision
 GET|PUT /api/people/{id}              people include their credits across productions
 GET|PUT /api/venues/{id}
@@ -444,6 +444,8 @@ web/
   | `DATA_DIR` | `./data` locally, `/data` in the image | database and local backups |
   | `TRUST_PROXY` | unset | read the client IP from `X-Forwarded-For` (section 10) |
   | `BASE_URL` | `http://localhost:8080` | used to build invite and reset links |
+
+  `serve -allow-local-fetch` lets imports read local addresses, to try the import against a local copy of a page during development. It disables the SSRF guard and is never set in the image.
 
 - **Health check.** `GET /healthz` is public and returns 200 once the database is open. It reveals nothing else.
 - **Start locally.** Development and early use run on the laptop with `strapontin serve`, without a container or a domain. The image can be tested locally with:

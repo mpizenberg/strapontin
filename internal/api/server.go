@@ -13,25 +13,29 @@ import (
 	"strings"
 
 	"github.com/mpizenberg/strapontin/internal/auth"
+	"github.com/mpizenberg/strapontin/internal/extract"
 )
 
 // Config holds what the handlers need from the command line.
 type Config struct {
 	BaseURL    string
 	TrustProxy bool
+	// AllowPrivateFetch lets imports reach local addresses. Tests only.
+	AllowPrivateFetch bool
 }
 
 // Server owns the dependencies shared by all handlers.
 type Server struct {
-	db     *sql.DB
-	cfg    Config
-	static fs.FS
-	logins *auth.Limiter
+	db      *sql.DB
+	cfg     Config
+	static  fs.FS
+	logins  *auth.Limiter
+	fetcher *extract.Fetcher
 }
 
 // New returns the root handler. static is the frontend build; it may be nil in tests.
 func New(db *sql.DB, cfg Config, static fs.FS) http.Handler {
-	s := &Server{db: db, cfg: cfg, static: static, logins: auth.NewLoginLimiter()}
+	s := &Server{db: db, cfg: cfg, static: static, logins: auth.NewLoginLimiter(), fetcher: extract.NewFetcher(cfg.AllowPrivateFetch)}
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /healthz", s.healthz)
@@ -41,6 +45,7 @@ func New(db *sql.DB, cfg Config, static fs.FS) http.Handler {
 	mux.HandleFunc("GET /api/roles", s.roles)
 	mux.HandleFunc("GET /api/search", s.member(s.search))
 
+	mux.HandleFunc("POST /api/import", s.member(s.importURL))
 	mux.HandleFunc("POST /api/productions", s.member(s.createProduction))
 	mux.HandleFunc("GET /api/productions/{id}", s.member(s.getProduction))
 	mux.HandleFunc("PUT /api/productions/{id}", s.member(s.updateProduction))

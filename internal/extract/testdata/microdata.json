@@ -1,0 +1,17 @@
+{
+  "title": "Fin de partie",
+  "description": "Hamm et Clov, dans une pièce vide.",
+  "image": "https://agenda.example/fin-de-partie.jpg",
+  "venue_name": "Théâtre Garonne",
+  "venue_city": "Toulouse",
+  "starts_on": "2019-03-12",
+  "ends_on": "2019-03-16",
+  "credits": [
+    {
+      "name": "Claire Vasseur",
+      "role": "performer"
+    }
+  ],
+  "source": "microdata",
+  "text": "Fin de partie\n12 mars\nThéâtre Garonne\nToulouse\nHamm et Clov, dans une pièce vide.\nClaire Vasseur\n"
+}

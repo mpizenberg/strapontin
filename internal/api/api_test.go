@@ -32,7 +32,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	t.Cleanup(func() { d.Close() })
 	admin, _ := auth.CreateMember(d, "Admin", "admin", "admin-pass", "admin", nil)
 	member, _ := auth.CreateMember(d, "Lucie Martin", "lucie", "lucie-pass", "member", &admin)
-	srv := httptest.NewServer(New(d, Config{BaseURL: "http://example.test"}, nil))
+	srv := httptest.NewServer(New(d, Config{BaseURL: "http://example.test", AllowPrivateFetch: true}, nil))
 	t.Cleanup(srv.Close)
 	return &testEnv{t: t, db: d, srv: srv, member: member, admin: admin}
 }

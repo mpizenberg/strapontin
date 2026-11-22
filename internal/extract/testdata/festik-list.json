@@ -1,0 +1,22 @@
+{
+  "title": "Basse Bâtarde",
+  "work_title": "Basse Bâtarde",
+  "company": "Cie Les nuits claires",
+  "image": "https://billetterie.example/img/bb.jpg",
+  "venue_name": "Cave Poésie",
+  "venue_address": "71 rue du Taur, Toulouse",
+  "starts_on": "2027-01-14",
+  "ends_on": "2027-01-16",
+  "credits": [
+    {
+      "name": "Camille Rey",
+      "role": "performer"
+    },
+    {
+      "name": "Lina Prosper",
+      "role": "author"
+    }
+  ],
+  "source": "jsonld",
+  "text": "Réservez vos places\n"
+}

@@ -28,7 +28,9 @@ export function App() {
                 <Match when={path() === "/journal"}><Journal /></Match>
                 <Match when={path() === "/chercher"}><Chercher /></Match>
                 <Match when={path() === "/moi"}><Moi onSignedOut={() => refresh(me)} /></Match>
-                <Match when={path() === "/spectacles/nouveau"}><ProductionForm /></Match>
+                <Match when={path() === "/spectacles/nouveau"}>
+                  <ProductionForm importURL={route().query.get("import") ?? undefined} title={route().query.get("titre") ?? ""} />
+                </Match>
                 <Match when={match("/spectacles/:id/modifier", path())}>{(p) => <ProductionForm id={Number(p().id)} />}</Match>
                 <Match when={match("/spectacles/:id", path())}>{(p) => <ProductionView id={Number(p().id)} />}</Match>
                 <Match when={match("/personnes/:id", path())}>{(p) => <PersonView id={Number(p().id)} />}</Match>
