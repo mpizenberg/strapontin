@@ -1,8 +1,11 @@
 package db
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestOpenMigratesAndReopens(t *testing.T) {
@@ -68,5 +71,35 @@ func TestNameKey(t *testing.T) {
 		if got := NameKey(in); got != want {
 			t.Errorf("NameKey(%q) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+func TestDailyBackupKeepsFourteen(t *testing.T) {
+	dir := t.TempDir()
+	d, err := Open(filepath.Join(dir, "t.db"), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	backups := filepath.Join(dir, "backups")
+	os.MkdirAll(backups, 0o750)
+	old := time.Now().Add(-48 * time.Hour)
+	for i := range 15 {
+		p := filepath.Join(backups, fmt.Sprintf("strapontin-202601%02d-000000-daily.db", i+1))
+		os.WriteFile(p, nil, 0o640)
+		os.Chtimes(p, old, old)
+	}
+	if err := dailyBackup(d, backups, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	files, _ := filepath.Glob(filepath.Join(backups, "*-daily.db"))
+	if len(files) != KeepDaily {
+		t.Fatalf("%d backups kept, want %d", len(files), KeepDaily)
+	}
+	// A fresh backup means nothing happens within the day.
+	dailyBackup(d, backups, time.Now())
+	files2, _ := filepath.Glob(filepath.Join(backups, "*-daily.db"))
+	if len(files2) != KeepDaily || files2[len(files2)-1] != files[len(files)-1] {
+		t.Fatal("a second backup was written the same day")
 	}
 }

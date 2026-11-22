@@ -1,0 +1,9 @@
+.git/
+data/
+plans/
+reports/
+research_notes/
+design/
+web/node_modules/
+web/dist/
+strapontin

@@ -13,6 +13,55 @@ export interface Me extends Member {
   created_at: string;
   seen: number;
   wanted: number;
+  invites_left: number; // -1: no limit
+}
+
+export interface InviteLink {
+  url: string;
+  expires_at: string;
+}
+
+export interface AdminMember {
+  id: number;
+  name: string;
+  login: string;
+  role: "admin" | "member";
+  invited_by?: string;
+  depth: number;
+  created_at: string;
+  last_seen?: string;
+  disabled: boolean;
+  outings: number;
+  imports: number;
+}
+
+export interface Count {
+  key: string;
+  count: number;
+}
+
+export interface Settings {
+  max_members: number;
+  invite_quota: number;
+  ntfy_topic: string;
+}
+
+export interface Overview {
+  members: number;
+  active_7: number;
+  active_30: number;
+  max_depth: number;
+  signups: Count[];
+  imports: Count[];
+  fetches: Count[];
+  login_failed: number;
+  db_bytes: number;
+  snapshots: number;
+  snapshot_bytes: number;
+  images: number;
+  image_bytes: number;
+  last_backup?: string;
+  settings: Settings;
 }
 
 export interface Role {

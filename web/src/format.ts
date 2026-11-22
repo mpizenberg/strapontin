@@ -46,3 +46,10 @@ export const posterClass = (id: number) => ["", "p2", "p3", "p4", "p5"][id % 5];
 
 /** ARIA state attributes take the strings "true" and "false". */
 export const aria = (b: boolean) => (b ? "true" : "false");
+
+export function formatBytes(n: number) {
+  if (n < 1024) return `${n} o`;
+  if (n < 1024 ** 2) return `${(n / 1024).toFixed(0)} Ko`;
+  if (n < 1024 ** 3) return `${(n / 1024 ** 2).toFixed(1).replace(".", ",")} Mo`;
+  return `${(n / 1024 ** 3).toFixed(2).replace(".", ",")} Go`;
+}

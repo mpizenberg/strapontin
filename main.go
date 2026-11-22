@@ -30,6 +30,8 @@ type config struct {
 	localFetch bool
 }
 
+func (c config) backupDir() string { return filepath.Join(c.dataDir, "backups") }
+
 func env(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
@@ -97,7 +99,7 @@ func openDB(cfg config) (*sql.DB, error) {
 	if err := os.MkdirAll(cfg.dataDir, 0o750); err != nil {
 		return nil, err
 	}
-	return db.Open(filepath.Join(cfg.dataDir, "strapontin.db"), filepath.Join(cfg.dataDir, "backups"))
+	return db.Open(filepath.Join(cfg.dataDir, "strapontin.db"), cfg.backupDir())
 }
 
 func withDB(cfg config, f func(*sql.DB) error) error {
@@ -117,8 +119,10 @@ func serve(cfg config) error {
 	defer d.Close()
 
 	srv := &http.Server{
-		Addr:              ":" + cfg.port,
-		Handler:           api.New(d, api.Config{BaseURL: cfg.baseURL, TrustProxy: cfg.trustProxy, AllowPrivateFetch: cfg.localFetch}, frontendFS()),
+		Addr: ":" + cfg.port,
+		Handler: api.New(d, api.Config{
+			BaseURL: cfg.baseURL, TrustProxy: cfg.trustProxy, AllowPrivateFetch: cfg.localFetch, BackupDir: cfg.backupDir(),
+		}, frontendFS()),
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      60 * time.Second,
@@ -126,6 +130,7 @@ func serve(cfg config) error {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	go db.DailyBackups(ctx, d, cfg.backupDir())
 	go func() {
 		<-ctx.Done()
 		shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)

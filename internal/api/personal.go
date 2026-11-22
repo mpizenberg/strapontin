@@ -233,8 +233,8 @@ func (s *Server) deleteFavorite(w http.ResponseWriter, r *http.Request, m *auth.
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// exists answers 404 unless the catalogue row exists. entity must come from
-// personalEntities, since it is spliced into the query.
+// exists answers 404 unless the row exists. entity is spliced into the
+// query, so it must be a constant or come from personalEntities.
 func (s *Server) exists(w http.ResponseWriter, entity string, id int64) bool {
 	var n int
 	s.db.QueryRow(`SELECT count(*) FROM `+entity+` WHERE id = ?`, id).Scan(&n)
@@ -334,10 +334,11 @@ func personal(q queryer, me int64, entity string, id int64) (favorite bool, note
 func (s *Server) me(w http.ResponseWriter, r *http.Request, m *auth.Member) {
 	out := struct {
 		*auth.Member
-		CreatedAt string `json:"created_at"`
-		Seen      int    `json:"seen"`
-		Wanted    int    `json:"wanted"`
-	}{Member: m}
+		CreatedAt   string `json:"created_at"`
+		Seen        int    `json:"seen"`
+		Wanted      int    `json:"wanted"`
+		InvitesLeft int    `json:"invites_left"` // -1: no limit
+	}{Member: m, InvitesLeft: s.invitesLeft(m)}
 	err := s.db.QueryRow(`SELECT created_at,
 		(SELECT count(DISTINCT production_id) FROM outing WHERE member_id = m.id AND status = 'seen'),
 		(SELECT count(*) FROM outing WHERE member_id = m.id AND status = 'want')

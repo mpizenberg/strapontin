@@ -345,7 +345,7 @@ POST   /api/login                     public, rate-limited
 POST   /api/logout
 GET    /api/invites/{token}           public: check an invite
 POST   /api/invites/{token}/redeem    public: create the account or reset the password
-GET    /api/me
+GET    /api/me                        includes the member's counts and invites left
 
 POST   /api/import          {url}  → draft matched against the catalogue, or the existing production
 POST   /api/credits/parse   {text} → credits read from pasted text, matched against people
@@ -368,9 +368,11 @@ PUT|DELETE /api/favorites/{entity}/{id}
 PUT    /api/notes/{entity}/{id}       an empty body deletes the note
 GET    /api/export.json | /api/export.csv               own data only
 
-GET    /api/admin/overview | /api/admin/members | /api/admin/events
-POST   /api/admin/invites | /api/admin/members/{id}/disable | /api/admin/members/{id}/reset
-PATCH  /api/admin/settings
+POST   /api/invites                   signup link; members within invite_quota, admins without limit
+
+GET    /api/admin/overview | /api/admin/members
+POST   /api/admin/members/{id}/disable | /enable | /reset
+PUT    /api/admin/settings
 ```
 
 Any path that is not under `/api/` or a static asset serves `index.html`.
@@ -491,7 +493,7 @@ CMD ["serve"]
 - **CA certificates** are needed because the app makes outgoing HTTPS requests to venue sites and sources. The distroless image includes them.
 - **Pinned base images.** The Go and Node versions are fixed in the Dockerfile. Base images can later be pinned by digest for reproducible builds.
 - **`npm ci`** installs exactly what the lockfile says, so the Solid 2 exception (section 9) only matters when the lockfile is created or updated, not when the image is built.
-- **`.dockerignore`** excludes `data/`, `web/node_modules/`, `web/dist/`, `research_notes/` and `reports/`.
+- **`.dockerignore`** excludes `.git/`, `data/`, `plans/`, `design/`, `web/node_modules/`, `web/dist/`, `research_notes/` and `reports/`.
 
 ### 11.2 Dokku deployment
 
@@ -528,11 +530,10 @@ dokku checks:disable strapontin
 ```
 main.go                     subcommands, configuration
 internal/db/                connection, migrations/, queries
-internal/extract/           jsonld.go, microdata.go, opengraph.go, credits.go, sites.go, testdata/
-internal/sources/           openagenda.go, tourisme.go, wikidata.go
+internal/extract/           fetch.go, extract.go (OpenGraph and title), jsonld.go, microdata.go, credits.go, testdata/
+internal/sources/           sources.go, openagenda.go, tourisme.go, wikidata.go
 internal/auth/              sessions, passwords, invites, rate limiting
-internal/api/               handlers, middleware
-internal/admin/             stats queries
+internal/api/               handlers, middleware, admin stats queries
 web/                        frontend (section 9); web/dist is embedded
 Dockerfile  .dockerignore   container image (section 11.1)
 Makefile                    dev, build, test, image

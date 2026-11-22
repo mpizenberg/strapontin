@@ -23,6 +23,8 @@ type Config struct {
 	TrustProxy bool
 	// AllowPrivateFetch lets imports reach local addresses. Tests only.
 	AllowPrivateFetch bool
+	// BackupDir is where daily backups go; the admin page shows the latest.
+	BackupDir string
 }
 
 // Server owns the dependencies shared by all handlers.
@@ -33,6 +35,7 @@ type Server struct {
 	logins  *auth.Limiter
 	fetcher *extract.Fetcher
 	sources *sources.Client
+	ntfyURL string
 	handler http.Handler
 }
 
@@ -41,13 +44,23 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) { s.handler.S
 // New returns the root handler. static is the frontend build; it may be nil in tests.
 func New(db *sql.DB, cfg Config, static fs.FS) *Server {
 	fetcher := extract.NewFetcher(cfg.AllowPrivateFetch)
-	s := &Server{db: db, cfg: cfg, static: static, logins: auth.NewLoginLimiter(), fetcher: fetcher, sources: sources.New(fetcher)}
+	s := &Server{db: db, cfg: cfg, static: static, logins: auth.NewLoginLimiter(), fetcher: fetcher, sources: sources.New(fetcher), ntfyURL: "https://ntfy.sh"}
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /healthz", s.healthz)
 	mux.HandleFunc("POST /api/login", s.login)
 	mux.HandleFunc("POST /api/logout", s.member(s.logout))
 	mux.HandleFunc("GET /api/me", s.member(s.me))
+	mux.HandleFunc("POST /api/invites", s.member(s.createInvite))
+	mux.HandleFunc("GET /api/invites/{token}", s.checkInvite)
+	mux.HandleFunc("POST /api/invites/{token}/redeem", s.redeemInvite)
+
+	mux.HandleFunc("GET /api/admin/overview", s.admin(s.adminOverview))
+	mux.HandleFunc("GET /api/admin/members", s.admin(s.adminMembers))
+	mux.HandleFunc("POST /api/admin/members/{id}/disable", s.admin(s.adminSetDisabled(true)))
+	mux.HandleFunc("POST /api/admin/members/{id}/enable", s.admin(s.adminSetDisabled(false)))
+	mux.HandleFunc("POST /api/admin/members/{id}/reset", s.admin(s.adminReset))
+	mux.HandleFunc("PUT /api/admin/settings", s.admin(s.adminSettings))
 	mux.HandleFunc("GET /api/roles", s.roles)
 	mux.HandleFunc("GET /api/search", s.member(s.search))
 

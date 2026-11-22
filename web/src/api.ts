@@ -1,4 +1,5 @@
 import type {
+  AdminMember, InviteLink, Overview, Settings,
   AgendaEvent, Candidate, Favorite, ImportResult, Me, PersonRef, Outing, OutingInput, Person, Production, ProductionInput, Role, SearchResult, Status, Venue, WikidataEntity,
 } from "./types";
 
@@ -40,6 +41,17 @@ export const api = {
   login: (login: string, password: string) => request<Me>("POST", "/api/login", { login, password }),
   logout: () => request<void>("POST", "/api/logout"),
   roles: () => get<Role[]>("/api/roles"),
+
+  createInvite: () => request<InviteLink>("POST", "/api/invites"),
+  checkInvite: (token: string) => get<{ kind: "signup" | "reset"; invited_by?: string; login?: string }>(`/api/invites/${token}`),
+  redeemInvite: (token: string, body: { name?: string; login?: string; password: string }) =>
+    request<Me>("POST", `/api/invites/${token}/redeem`, body),
+
+  adminOverview: () => get<Overview>("/api/admin/overview"),
+  adminMembers: () => get<AdminMember[]>("/api/admin/members"),
+  adminMember: (id: number, action: "disable" | "enable") => request<void>("POST", `/api/admin/members/${id}/${action}`),
+  adminReset: (id: number) => request<InviteLink>("POST", `/api/admin/members/${id}/reset`),
+  adminSettings: (s: Partial<Settings>) => request<void>("PUT", "/api/admin/settings", s),
 
   importURL: (url: string) => request<ImportResult>("POST", "/api/import", { url }),
   parseCredits: (text: string) =>
