@@ -35,7 +35,8 @@
     padding-bottom: calc(var(--nav-height) + var(--space-6));
   }
 
-  .page.has-footer { padding-bottom: calc(var(--nav-height) + 5rem); }
+  /* The footer follows the page in the flow, so it can't cover its end. */
+  .page.has-footer { padding-bottom: var(--space-6); }
 
   .tabbar {
     position: fixed;
@@ -63,8 +64,9 @@
 
   /* Sticky action bar above the tab bar. */
   .footer-actions {
-    position: fixed;
-    inset: auto 0 var(--nav-height) 0;
+    position: sticky;
+    bottom: var(--nav-height);
+    margin-bottom: var(--nav-height);
     z-index: 9;
     display: flex;
     flex-direction: column;
