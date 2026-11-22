@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vérifier la fiche · Strapontin</title>
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+  <header class="appbar">
+    <a class="appbar-back" href="chercher.html" aria-label="Retour">‹</a>
+    <h1>Vérifier la fiche</h1>
+  </header>
+
+  <main class="page has-footer">
+    <p class="meta">Lu sur <span class="link">theatre-cite.com</span> à l'instant.</p>
+
+    <div class="media">
+      <div class="media-aside">
+        <span class="poster lg">Le Misanthrope</span>
+        <a class="btn ghost small" href="#">Changer</a>
+      </div>
+      <div class="media-body">
+        <div class="field">
+          <label for="title">Titre</label>
+          <input class="input" id="title" value="Le Misanthrope">
+        </div>
+        <div class="field">
+          <span class="label">Œuvre</span>
+          <a class="picked" href="#">
+            <span class="grow">Le Misanthrope<br><span class="meta">Molière</span></span>
+            <span class="chip ok">existante</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="company">Compagnie</label>
+      <input class="input" id="company" value="Compagnie des Lustres">
+    </div>
+
+    <section class="section">
+      <h2 class="section-title">Représentations</h2>
+      <a class="picked" href="#">
+        <span class="grow">Théâtre de la Cité<br><span class="meta">Toulouse</span></span>
+        <span class="chip ok">existante</span>
+      </a>
+      <div class="two-cols">
+        <div class="field"><label for="from">Du</label><input class="input" id="from" value="2 déc. 2026"></div>
+        <div class="field"><label for="to">Au</label><input class="input" id="to" value="12 déc. 2026"></div>
+      </div>
+    </section>
+
+    <details class="card">
+      <summary class="link">Présentation (texte de la page)</summary>
+      <p class="meta">Alceste aime Célimène, qui aime plaire. Dans un salon devenu plateau de télévision, Claire Vasseur fait de la comédie de Molière un huis clos sur la franchise et ses ravages…</p>
+    </details>
+
+    <section class="section">
+      <h2 class="section-title">Crédits · 15 <a href="#paste">Coller du texte</a></h2>
+
+      <p class="notice warn"><span><strong>2 points à vérifier</strong>Un homonyme et une ligne qui n'est peut-être pas un nom.</span></p>
+
+      <div class="list">
+        <div class="credit-group">
+          <h3>Texte</h3>
+          <a class="credit-row" href="#credit"><span class="who"><span class="name">Molière</span></span><span class="chip ok">existante</span></a>
+        </div>
+        <div class="credit-group">
+          <h3>Mise en scène</h3>
+          <a class="credit-row" href="#credit"><span class="who"><span class="name">Claire Vasseur <span class="star">★</span></span></span><span class="chip ok">existante</span></a>
+        </div>
+        <div class="credit-group">
+          <h3>Interprètes</h3>
+          <a class="credit-row" href="#credit"><span class="who"><span class="name">Mathieu Ronsard</span><br><span class="character">Alceste</span></span><span class="chip ok">existante</span></a>
+          <a class="credit-row" href="#credit"><span class="who"><span class="name">Inès Bakari <span class="star">★</span></span><br><span class="character">Célimène</span></span><span class="chip ok">existante</span></a>
+          <a class="credit-row attention" href="#homonyme"><span class="who"><span class="name">Thomas Lequeux</span><br><span class="character">Philinte</span></span><span class="chip warn">2 fiches ▾</span></a>
+          <a class="credit-row" href="#credit"><span class="who"><span class="name">Margot Delaunay</span><br><span class="character">Éliante</span></span><span class="chip new">nouvelle</span></a>
+          <a class="credit-row" href="#credit"><span class="who"><span class="name">Karim Haddad</span><br><span class="character">Oronte</span></span><span class="chip ok">existante</span></a>
+          <a class="credit-row" href="#credit"><span class="who"><span class="name">Sylvie Marchetti</span><br><span class="character">Arsinoé</span></span><span class="chip new">nouvelle</span></a>
+          <a class="credit-row" href="#credit"><span class="who"><span class="name">Hugo Ferrand</span><br><span class="character">Acaste</span></span><span class="chip new">nouvelle</span></a>
+          <div class="credit-row attention">
+            <span class="who"><span class="name"><i>la participation des élèves du Conservatoire</i></span><br><span class="character">Pas un nom ?</span></span>
+            <button class="btn small">Retirer</button>
+          </div>
+          <a class="add-line" href="#credit">＋ Ajouter un interprète</a>
+        </div>
+        <div class="credit-group">
+          <h3>Scénographie</h3>
+          <a class="credit-row" href="#credit"><span class="who"><span class="name">Léa Montanari</span></span><span class="chip new">nouvelle</span></a>
+        </div>
+        <div class="credit-group">
+          <h3>Lumière</h3>
+          <a class="credit-row" href="#credit"><span class="who"><span class="name">Jérôme Basset</span></span><span class="chip ok">existante</span></a>
+        </div>
+        <div class="credit-group">
+          <h3>Costumes</h3>
+          <a class="credit-row" href="#credit"><span class="who"><span class="name">Anaïs Robin</span></span><span class="chip new">nouvelle</span></a>
+        </div>
+        <div class="credit-group">
+          <h3>Son</h3>
+          <a class="credit-row" href="#credit"><span class="who"><span class="name">Victor Lagarde</span></span><span class="chip new">nouvelle</span></a>
+        </div>
+        <a class="add-line" href="#credit">＋ Ajouter un crédit</a>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer-actions">
+    <span class="label">Enregistrer dans mon Strapontin :</span>
+    <div class="btn-row">
+      <a class="btn primary" href="production.html">Envie</a>
+      <a class="btn" href="production.html#sortie">Réservé</a>
+      <a class="btn" href="production.html#sortie">Déjà vu</a>
+    </div>
+  </div>
+
+  <nav class="tabbar" data-active="chercher"></nav>
+
+  <!-- Homonym resolution -->
+  <div class="sheet" id="homonyme">
+    <a class="backdrop" href="#" aria-label="Fermer"></a>
+    <div class="panel">
+      <span class="grabber"></span>
+      <div class="sheet-head"><h2>Quel Thomas Lequeux ?</h2><a class="icon-btn" href="#">×</a></div>
+      <p class="meta">Deux fiches portent ce nom. Ici : interprète, rôle de Philinte.</p>
+      <a class="choice" aria-checked="true" href="#">
+        <span class="dot"></span>
+        <span class="grow"><span class="name">Thomas Lequeux</span><br><span class="meta">Interprète · Ivanov (2025), Les Bonnes (2024)</span><br><span class="meta">Vous l'avez vu dans Ivanov</span></span>
+      </a>
+      <a class="choice" href="#">
+        <span class="dot"></span>
+        <span class="grow"><span class="name">Thomas Lequeux</span><br><span class="meta">Lumière · Le Grand Cahier (2023)</span></span>
+      </a>
+      <a class="choice" href="#">
+        <span class="dot"></span>
+        <span class="grow"><span class="name">Quelqu'un d'autre</span><br><span class="meta">Créer une nouvelle fiche</span></span>
+      </a>
+      <a class="btn primary block" href="#">Valider</a>
+    </div>
+  </div>
+
+  <!-- Edit one credit -->
+  <div class="sheet" id="credit">
+    <a class="backdrop" href="#" aria-label="Fermer"></a>
+    <div class="panel">
+      <span class="grabber"></span>
+      <div class="sheet-head"><h2>Crédit</h2><a class="icon-btn" href="#">×</a></div>
+      <div class="field"><label for="c-role">Rôle</label><select class="input" id="c-role"><option>Interprète</option><option>Mise en scène</option><option>Texte</option><option>Scénographie</option></select></div>
+      <div class="field"><label for="c-name">Nom</label><input class="input" id="c-name" value="Hugo Ferrand"></div>
+      <div class="field"><label for="c-char">Personnage</label><input class="input" id="c-char" value="Acaste"></div>
+      <div class="field">
+        <span class="label">Fiche</span>
+        <div class="picked"><span class="grow">Nouvelle fiche<br><span class="meta">Personne de ce nom au catalogue</span></span><span class="chip new">nouvelle</span></div>
+        <a class="link" href="#">Lier à une fiche existante…</a>
+      </div>
+      <div class="two-cols">
+        <a class="btn" href="#">Supprimer</a>
+        <a class="btn primary" href="#">OK</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paste credits text -->
+  <div class="sheet" id="paste">
+    <a class="backdrop" href="#" aria-label="Fermer"></a>
+    <div class="panel">
+      <span class="grabber"></span>
+      <div class="sheet-head"><h2>Coller la distribution</h2><a class="icon-btn" href="#">×</a></div>
+      <p class="meta">Copiez la distribution depuis la page ou un programme. Les crédits reconnus s'ajoutent à la liste.</p>
+      <textarea class="textarea" rows="6">Mise en scène Claire Vasseur
+Avec Mathieu Ronsard, Inès Bakari, Thomas Lequeux
+Lumière Jérôme Basset</textarea>
+      <a class="btn primary block" href="#">Reconnaître les crédits</a>
+    </div>
+  </div>
+
+  <script src="mockup.js"></script>
+</body>
+</html>

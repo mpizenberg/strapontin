@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strapontin · maquettes</title>
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/gallery.css">
+</head>
+<body>
+  <main class="gallery">
+    <header>
+      <h1>Strapontin · maquettes</h1>
+      <p class="muted">Static, clickable mockups. Each frame is a live page: click through, open sheets, follow links. Fake data, real venues. Open a page directly to see it full screen.</p>
+    </header>
+
+    <section class="screen-group">
+      <h2>1. Chercher ou ajouter</h2>
+      <p>One field for everything: typing searches the catalogue live and the Toulouse agendas on demand; pasting a link imports the page. The draft review ends with one tap that saves both the production and the outing.</p>
+      <div class="frames">
+        <figure class="frame">
+          <iframe src="chercher.html" title="Chercher"></iframe>
+          <figcaption><strong>Search.</strong> Local results first, then external sources. One source down. <a href="chercher.html">open</a></figcaption>
+        </figure>
+        <figure class="frame">
+          <iframe src="chercher-lien.html" title="Lien collé"></iframe>
+          <figcaption><strong>Link pasted.</strong> Fetch in progress. <a href="chercher-lien.html">open</a></figcaption>
+        </figure>
+        <figure class="frame">
+          <iframe src="import-review.html" title="Brouillon"></iframe>
+          <figcaption><strong>Draft review, rich page.</strong> JSON-LD and credits parsed. Matches marked known/new, two points to check. <a href="import-review.html">open</a></figcaption>
+        </figure>
+        <figure class="frame">
+          <iframe src="import-review.html#homonyme" title="Homonyme"></iframe>
+          <figcaption><strong>Homonym.</strong> Two people with the same name: pick one with context. <a href="import-review.html#homonyme">open</a></figcaption>
+        </figure>
+        <figure class="frame">
+          <iframe src="import-review.html#credit" title="Crédit"></iframe>
+          <figcaption><strong>Edit a credit.</strong> Role, name, character, and which person record it links to. <a href="import-review.html#credit">open</a></figcaption>
+        </figure>
+        <figure class="frame">
+          <iframe src="import-review.html#paste" title="Coller"></iframe>
+          <figcaption><strong>Paste credits.</strong> Same parser as import, fed by hand. <a href="import-review.html#paste">open</a></figcaption>
+        </figure>
+        <figure class="frame">
+          <iframe src="import-partial.html" title="Page pauvre"></iframe>
+          <figcaption><strong>Poor page.</strong> OpenGraph only: venue guessed from the host, no dates, no credits. <a href="import-partial.html">open</a></figcaption>
+        </figure>
+        <figure class="frame">
+          <iframe src="import-duplicate.html" title="Doublon"></iframe>
+          <figcaption><strong>Already imported.</strong> Skip the draft, add an outing directly, or refresh the record. <a href="import-duplicate.html">open</a></figcaption>
+        </figure>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

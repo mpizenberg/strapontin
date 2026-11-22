@@ -1,0 +1,49 @@
+/* Gallery page only: lays the screens out side by side in phone frames. */
+@layer mockup {
+  .gallery {
+    max-width: 120rem;
+    margin: 0 auto;
+    padding: var(--space-7) var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+
+    & > header { max-width: 48rem; display: flex; flex-direction: column; gap: var(--space-3); }
+    & > header h1 { font-family: var(--font-title); font-size: var(--text-2xl); }
+  }
+
+  .screen-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+
+    & > h2 { font-size: var(--text-xl); }
+    & > p { max-width: 48rem; color: var(--color-text-muted); }
+  }
+
+  .frames {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+  }
+
+  .frame {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    width: 390px;
+
+    & iframe {
+      width: 390px;
+      height: 844px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border-strong);
+      border-radius: 2rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    & figcaption { font-size: var(--text-sm); color: var(--color-text-muted); }
+    & figcaption strong { color: var(--color-text); }
+    & figcaption a { color: var(--color-accent-text); }
+  }
+}

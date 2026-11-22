@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Import en cours · Strapontin</title>
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+  <header class="appbar"><h1>Chercher ou ajouter</h1></header>
+
+  <main class="page">
+    <div class="section">
+      <label class="search-field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
+        <input value="https://theatre-cite.com/programmation/le-misanthrope" aria-label="Chercher">
+        <a class="btn small" href="chercher.html">×</a>
+      </label>
+    </div>
+
+    <a class="card" href="import-review.html">
+      <p class="loading">Lecture de la page…</p>
+      <p class="meta">theatre-cite.com</p>
+    </a>
+  </main>
+
+  <nav class="tabbar" data-active="chercher"></nav>
+  <script src="mockup.js"></script>
+</body>
+</html>

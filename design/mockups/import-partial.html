@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vérifier la fiche (page pauvre) · Strapontin</title>
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+  <header class="appbar">
+    <a class="appbar-back" href="chercher.html" aria-label="Retour">‹</a>
+    <h1>Vérifier la fiche</h1>
+  </header>
+
+  <main class="page has-footer">
+    <p class="notice warn"><span><strong>Peu d'informations sur cette page</strong>Seuls le titre, l'image et la présentation ont été trouvés. Complétez ce que vous savez, le reste pourra attendre.</span></p>
+
+    <div class="media">
+      <div class="media-aside">
+        <span class="poster lg p5">Oncle Vania</span>
+        <a class="btn ghost small" href="#">Changer</a>
+      </div>
+      <div class="media-body">
+        <div class="field">
+          <label for="title">Titre</label>
+          <input class="input" id="title" value="Oncle Vania">
+        </div>
+        <div class="field">
+          <span class="label">Œuvre</span>
+          <a class="picked" href="#">
+            <span class="grow">Oncle Vania<br><span class="meta">Anton Tchekhov</span></span>
+            <span class="chip ok">existante</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <section class="section">
+      <h2 class="section-title">Représentations</h2>
+      <a class="picked" href="#">
+        <span class="grow">Théâtre du Pavé ?<br><span class="meta">Deviné d'après le site · toucher pour confirmer</span></span>
+        <span class="chip warn">à confirmer</span>
+      </a>
+      <div class="two-cols">
+        <div class="field"><label for="from">Du</label><input class="input" id="from" placeholder="jj/mm/aaaa"></div>
+        <div class="field"><label for="to">Au</label><input class="input" id="to" placeholder="jj/mm/aaaa"></div>
+      </div>
+    </section>
+
+    <details class="card" open>
+      <summary class="link">Présentation (texte de la page)</summary>
+      <p class="meta">Dans une datcha qui s'endort, Vania découvre qu'il a travaillé toute sa vie pour rien. Une mise en scène de Nadia Ferrer, avec Luc Daubry, Amélie Sorel et Joseph Kerbrat.</p>
+      <a class="btn small" href="#">Chercher des crédits dans ce texte</a>
+    </details>
+
+    <section class="section">
+      <h2 class="section-title">Crédits</h2>
+      <div class="list">
+        <div class="credit-group">
+          <h3>Texte</h3>
+          <a class="credit-row" href="#"><span class="who"><span class="name">Anton Tchekhov</span><br><span class="character">Repris de l'œuvre</span></span><span class="chip ok">existante</span></a>
+        </div>
+        <a class="add-line" href="import-review.html#paste">＋ Coller la distribution</a>
+        <a class="add-line" href="import-review.html#credit">＋ Ajouter un crédit</a>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer-actions">
+    <span class="label">Enregistrer dans mon Strapontin :</span>
+    <div class="btn-row">
+      <a class="btn primary" href="production.html">Envie</a>
+      <a class="btn" href="production.html#sortie">Réservé</a>
+      <a class="btn" href="production.html#sortie">Déjà vu</a>
+    </div>
+  </div>
+
+  <nav class="tabbar" data-active="chercher"></nav>
+  <script src="mockup.js"></script>
+</body>
+</html>
