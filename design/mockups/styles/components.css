@@ -391,7 +391,7 @@
     letter-spacing: 1px;
 
     & .off { color: var(--color-border-strong); }
-    &.input { font-size: var(--text-2xl); gap: var(--space-2); }
+    &.large { font-size: var(--text-2xl); gap: var(--space-2); }
   }
 
   /* ---------- Bottom sheet (opened with :target, no script) ---------- */

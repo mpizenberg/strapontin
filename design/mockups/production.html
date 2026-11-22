@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Le Misanthrope · Strapontin</title>
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+  <header class="appbar">
+    <a class="appbar-back" href="a-voir.html" aria-label="Retour">‹</a>
+    <h1>Spectacle</h1>
+    <a class="btn ghost small" href="import-review.html">Modifier</a>
+  </header>
+
+  <main class="page">
+    <div class="media">
+      <span class="poster xl">Le Misanthrope</span>
+      <div class="media-body">
+        <h2 class="title">Le Misanthrope</h2>
+        <p class="meta">Molière<br>Mise en scène <a class="link" href="personne.html">Claire Vasseur</a> <span class="star">★</span><br>Compagnie des Lustres</p>
+      </div>
+    </div>
+
+    <section class="section">
+      <h2 class="section-title">Mes sorties <a href="#sortie-nouvelle">＋ Une autre</a></h2>
+      <ul class="list"><li><a class="row" href="#sortie">
+        <span class="grow">
+          <span class="chip status-booked">Réservé</span><br>
+          <span class="name">Samedi 5 décembre 2026</span><br>
+          <span class="meta">Théâtre de la Cité</span>
+        </span>
+        <span class="chev">›</span>
+      </a></li></ul>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Représentations</h2>
+      <ul class="list">
+        <li><a class="row" href="#">
+          <span class="grow"><span class="name">Théâtre de la Cité</span><br><span class="meta">Toulouse · 2 → 12 déc. 2026</span></span>
+          <span class="link">Site ↗</span>
+        </a></li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Distribution</h2>
+      <div class="list">
+        <div class="credit-group">
+          <h3>Mise en scène</h3>
+          <a class="credit-row" href="personne.html"><span class="who"><span class="name">Claire Vasseur <span class="star">★</span></span></span><span class="meta">3 vus</span></a>
+        </div>
+        <div class="credit-group">
+          <h3>Interprètes</h3>
+          <a class="credit-row" href="personne.html"><span class="who"><span class="name">Mathieu Ronsard</span><br><span class="character">Alceste</span></span></a>
+          <a class="credit-row" href="personne.html"><span class="who"><span class="name">Inès Bakari <span class="star">★</span></span><br><span class="character">Célimène</span></span><span class="meta">2 vus</span></a>
+          <a class="credit-row" href="personne.html"><span class="who"><span class="name">Thomas Lequeux</span><br><span class="character">Philinte</span></span><span class="meta">1 vu</span></a>
+          <a class="credit-row" href="personne.html"><span class="who"><span class="name">Margot Delaunay</span><br><span class="character">Éliante</span></span></a>
+          <a class="credit-row" href="personne.html"><span class="who"><span class="name">Karim Haddad</span><br><span class="character">Oronte</span></span></a>
+          <a class="credit-row" href="personne.html"><span class="who"><span class="name">Sylvie Marchetti</span><br><span class="character">Arsinoé</span></span></a>
+          <a class="credit-row" href="personne.html"><span class="who"><span class="name">Hugo Ferrand</span><br><span class="character">Acaste</span></span></a>
+        </div>
+      </div>
+      <details class="card">
+        <summary class="link">Équipe artistique · 4</summary>
+        <dl class="credits-read">
+          <dt>Scénographie</dt><dd>Léa Montanari</dd>
+          <dt>Lumière</dt><dd>Jérôme Basset</dd>
+          <dt>Costumes</dt><dd>Anaïs Robin</dd>
+          <dt>Son</dt><dd>Victor Lagarde</dd>
+        </dl>
+      </details>
+    </section>
+
+    <details class="card">
+      <summary class="link">Présentation</summary>
+      <p class="meta">Alceste aime Célimène, qui aime plaire. Dans un salon devenu plateau de télévision, Claire Vasseur fait de la comédie de Molière un huis clos sur la franchise et ses ravages…</p>
+    </details>
+
+    <section class="section">
+      <h2 class="section-title">Autres mises en scène du texte</h2>
+      <ul class="list">
+        <li><a class="row" href="#">
+          <span class="poster p2">Le Misanthrope</span>
+          <span class="grow"><span class="name">Le Misanthrope</span><br><span class="meta">Mise en scène Pierre Aubry · TNT, 2024</span></span>
+          <span class="chip status-seen">Vu ★★★★</span>
+        </a></li>
+        <li><a class="row" href="#">
+          <span class="poster p3">Le Misanthrope ou l'Atrabilaire</span>
+          <span class="grow"><span class="name">Le Misanthrope ou l'Atrabilaire amoureux</span><br><span class="meta">Théâtre du Grand Rond, 2027</span></span>
+        </a></li>
+      </ul>
+    </section>
+
+    <p class="meta">Fiche importée de theatre-cite.com · modifiée 2 fois · <a class="link" href="#">historique</a></p>
+  </main>
+
+  <nav class="tabbar" data-active="a-voir"></nav>
+
+  <!-- Outing: booked -->
+  <div class="sheet" id="sortie">
+    <a class="backdrop" href="#" aria-label="Fermer"></a>
+    <div class="panel">
+      <span class="grabber"></span>
+      <div class="sheet-head"><h2>Ma sortie</h2><a class="icon-btn" href="#">×</a></div>
+      <div class="segmented">
+        <a href="#sortie-envie">Envie</a>
+        <a href="#sortie" aria-pressed="true">Réservé</a>
+        <a href="#sortie-vu">Vu</a>
+        <a href="#sortie-rate">Raté</a>
+      </div>
+      <div class="field"><label for="b-date">Date</label><input class="input" id="b-date" type="date" value="2026-12-05"></div>
+      <div class="field">
+        <span class="label">Lieu</span>
+        <a class="picked" href="#"><span class="grow">Théâtre de la Cité<br><span class="meta">2 → 12 déc. 2026</span></span><span class="chev">›</span></a>
+      </div>
+      <div class="btn-row">
+        <a class="btn" href="#">Supprimer</a>
+        <a class="btn primary" href="#">Enregistrer</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Outing: seen -->
+  <div class="sheet" id="sortie-vu">
+    <a class="backdrop" href="#" aria-label="Fermer"></a>
+    <div class="panel">
+      <span class="grabber"></span>
+      <div class="sheet-head"><h2>Ma sortie</h2><a class="icon-btn" href="#">×</a></div>
+      <div class="segmented">
+        <a href="#sortie-envie">Envie</a>
+        <a href="#sortie">Réservé</a>
+        <a href="#sortie-vu" aria-pressed="true">Vu</a>
+        <a href="#sortie-rate">Raté</a>
+      </div>
+      <div class="two-cols">
+        <div class="field"><label for="s-date">Date</label><input class="input" id="s-date" type="date" value="2026-12-05"></div>
+        <div class="field"><span class="label">Lieu</span><a class="picked" href="#"><span class="grow">Th. de la Cité</span></a></div>
+      </div>
+      <div class="field">
+        <span class="label">Ma note</span>
+        <span class="stars large" role="radiogroup" aria-label="Note">★★★★<span class="off">★</span></span>
+      </div>
+      <div class="field">
+        <label for="s-comment">Mon commentaire</label>
+        <textarea class="textarea" id="s-comment" rows="5">Inès Bakari en Célimène, magnétique. Le dispositif télé s'essouffle après l'entracte mais la scène du sonnet est un bijou.</textarea>
+        <span class="meta">Visible par vous uniquement.</span>
+      </div>
+      <div class="btn-row">
+        <a class="btn" href="#">Supprimer</a>
+        <a class="btn primary" href="#">Enregistrer</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Outing: want -->
+  <div class="sheet" id="sortie-envie">
+    <a class="backdrop" href="#" aria-label="Fermer"></a>
+    <div class="panel">
+      <span class="grabber"></span>
+      <div class="sheet-head"><h2>Ma sortie</h2><a class="icon-btn" href="#">×</a></div>
+      <div class="segmented">
+        <a href="#sortie-envie" aria-pressed="true">Envie</a>
+        <a href="#sortie">Réservé</a>
+        <a href="#sortie-vu">Vu</a>
+        <a href="#sortie-rate">Raté</a>
+      </div>
+      <p class="meta">Le spectacle reste dans « À voir », trié par date de dernière représentation.</p>
+      <div class="btn-row">
+        <a class="btn" href="#">Supprimer</a>
+        <a class="btn primary" href="#">Enregistrer</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Outing: missed -->
+  <div class="sheet" id="sortie-rate">
+    <a class="backdrop" href="#" aria-label="Fermer"></a>
+    <div class="panel">
+      <span class="grabber"></span>
+      <div class="sheet-head"><h2>Ma sortie</h2><a class="icon-btn" href="#">×</a></div>
+      <div class="segmented">
+        <a href="#sortie-envie">Envie</a>
+        <a href="#sortie">Réservé</a>
+        <a href="#sortie-vu">Vu</a>
+        <a href="#sortie-rate" aria-pressed="true">Raté</a>
+      </div>
+      <div class="field">
+        <label for="m-comment">Une note ?</label>
+        <textarea class="textarea" id="m-comment" rows="3" placeholder="Complet, malade, reprise prévue…"></textarea>
+      </div>
+      <div class="btn-row">
+        <a class="btn" href="#">Supprimer</a>
+        <a class="btn primary" href="#">Enregistrer</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- A second outing for the same production -->
+  <div class="sheet" id="sortie-nouvelle">
+    <a class="backdrop" href="#" aria-label="Fermer"></a>
+    <div class="panel">
+      <span class="grabber"></span>
+      <div class="sheet-head"><h2>Nouvelle sortie</h2><a class="icon-btn" href="#">×</a></div>
+      <p class="meta">Pour revoir le spectacle ou y emmener quelqu'un : chaque sortie a sa date, sa note et son commentaire.</p>
+      <div class="segmented">
+        <a href="#sortie-envie">Envie</a>
+        <a href="#sortie" aria-pressed="true">Réservé</a>
+        <a href="#sortie-vu">Vu</a>
+      </div>
+      <div class="field"><label for="n-date">Date</label><input class="input" id="n-date" type="date"></div>
+      <a class="btn primary block" href="#">Ajouter</a>
+    </div>
+  </div>
+
+  <script src="mockup.js"></script>
+</body>
+</html>
