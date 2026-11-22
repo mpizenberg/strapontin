@@ -25,15 +25,15 @@
     </div>
 
     <section class="section">
-      <h2 class="section-title">Mes sorties <a href="#sortie-nouvelle">＋ Une autre</a></h2>
-      <ul class="list"><li><a class="row" href="#sortie">
+      <h2 class="section-title">Mes sorties</h2>
+      <ul class="list"><li><div class="row">
         <span class="grow">
-          <span class="chip status-booked">Réservé</span><br>
-          <span class="name">Samedi 5 décembre 2026</span><br>
-          <span class="meta">Théâtre de la Cité</span>
+          <span class="chip status-want">Envie</span><br>
+          <span class="meta">Dans « À voir » jusqu'au 12 déc.</span>
         </span>
-        <span class="chev">›</span>
-      </a></li></ul>
+        <a class="btn small" href="#">Retirer</a>
+        <a class="btn small primary" href="#sortie-vu">Je l'ai vu</a>
+      </div></li></ul>
     </section>
 
     <section class="section">
@@ -100,42 +100,12 @@
 
   <nav class="tabbar" data-active="a-voir"></nav>
 
-  <!-- Outing: booked -->
-  <div class="sheet" id="sortie">
-    <a class="backdrop" href="#" aria-label="Fermer"></a>
-    <div class="panel">
-      <span class="grabber"></span>
-      <div class="sheet-head"><h2>Ma sortie</h2><a class="icon-btn" href="#">×</a></div>
-      <div class="segmented">
-        <a href="#sortie-envie">Envie</a>
-        <a href="#sortie" aria-pressed="true">Réservé</a>
-        <a href="#sortie-vu">Vu</a>
-        <a href="#sortie-rate">Raté</a>
-      </div>
-      <div class="field"><label for="b-date">Date</label><input class="input" id="b-date" type="date" value="2026-12-05"></div>
-      <div class="field">
-        <span class="label">Lieu</span>
-        <a class="picked" href="#"><span class="grow">Théâtre de la Cité<br><span class="meta">2 → 12 déc. 2026</span></span><span class="chev">›</span></a>
-      </div>
-      <div class="btn-row">
-        <a class="btn" href="#">Supprimer</a>
-        <a class="btn primary" href="#">Enregistrer</a>
-      </div>
-    </div>
-  </div>
-
   <!-- Outing: seen -->
   <div class="sheet" id="sortie-vu">
     <a class="backdrop" href="#" aria-label="Fermer"></a>
     <div class="panel">
       <span class="grabber"></span>
       <div class="sheet-head"><h2>Ma sortie</h2><a class="icon-btn" href="#">×</a></div>
-      <div class="segmented">
-        <a href="#sortie-envie">Envie</a>
-        <a href="#sortie">Réservé</a>
-        <a href="#sortie-vu" aria-pressed="true">Vu</a>
-        <a href="#sortie-rate">Raté</a>
-      </div>
       <div class="two-cols">
         <div class="field"><label for="s-date">Date</label><input class="input" id="s-date" type="date" value="2026-12-05"></div>
         <div class="field"><span class="label">Lieu</span><a class="picked" href="#"><span class="grow">Th. de la Cité</span></a></div>
@@ -153,66 +123,6 @@
         <a class="btn" href="#">Supprimer</a>
         <a class="btn primary" href="#">Enregistrer</a>
       </div>
-    </div>
-  </div>
-
-  <!-- Outing: want -->
-  <div class="sheet" id="sortie-envie">
-    <a class="backdrop" href="#" aria-label="Fermer"></a>
-    <div class="panel">
-      <span class="grabber"></span>
-      <div class="sheet-head"><h2>Ma sortie</h2><a class="icon-btn" href="#">×</a></div>
-      <div class="segmented">
-        <a href="#sortie-envie" aria-pressed="true">Envie</a>
-        <a href="#sortie">Réservé</a>
-        <a href="#sortie-vu">Vu</a>
-        <a href="#sortie-rate">Raté</a>
-      </div>
-      <p class="meta">Le spectacle reste dans « À voir », trié par date de dernière représentation.</p>
-      <div class="btn-row">
-        <a class="btn" href="#">Supprimer</a>
-        <a class="btn primary" href="#">Enregistrer</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Outing: missed -->
-  <div class="sheet" id="sortie-rate">
-    <a class="backdrop" href="#" aria-label="Fermer"></a>
-    <div class="panel">
-      <span class="grabber"></span>
-      <div class="sheet-head"><h2>Ma sortie</h2><a class="icon-btn" href="#">×</a></div>
-      <div class="segmented">
-        <a href="#sortie-envie">Envie</a>
-        <a href="#sortie">Réservé</a>
-        <a href="#sortie-vu">Vu</a>
-        <a href="#sortie-rate" aria-pressed="true">Raté</a>
-      </div>
-      <div class="field">
-        <label for="m-comment">Une note ?</label>
-        <textarea class="textarea" id="m-comment" rows="3" placeholder="Complet, malade, reprise prévue…"></textarea>
-      </div>
-      <div class="btn-row">
-        <a class="btn" href="#">Supprimer</a>
-        <a class="btn primary" href="#">Enregistrer</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- A second outing for the same production -->
-  <div class="sheet" id="sortie-nouvelle">
-    <a class="backdrop" href="#" aria-label="Fermer"></a>
-    <div class="panel">
-      <span class="grabber"></span>
-      <div class="sheet-head"><h2>Nouvelle sortie</h2><a class="icon-btn" href="#">×</a></div>
-      <p class="meta">Pour revoir le spectacle ou y emmener quelqu'un : chaque sortie a sa date, sa note et son commentaire.</p>
-      <div class="segmented">
-        <a href="#sortie-envie">Envie</a>
-        <a href="#sortie" aria-pressed="true">Réservé</a>
-        <a href="#sortie-vu">Vu</a>
-      </div>
-      <div class="field"><label for="n-date">Date</label><input class="input" id="n-date" type="date"></div>
-      <a class="btn primary block" href="#">Ajouter</a>
     </div>
   </div>
 

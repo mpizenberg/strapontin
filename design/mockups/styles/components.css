@@ -273,29 +273,6 @@
     &.empty { border-style: dashed; color: var(--color-text-muted); }
   }
 
-  .segmented {
-    display: grid;
-    grid-auto-columns: 1fr;
-    grid-auto-flow: column;
-    padding: 3px;
-    background: var(--color-surface-sunken);
-    border-radius: var(--radius-md);
-
-    & a, & button {
-      display: grid;
-      place-items: center;
-      min-height: 2.5rem;
-      font-size: var(--text-sm);
-      font-weight: 500;
-      color: var(--color-text-muted);
-      background: none;
-      border: 0;
-      border-radius: calc(var(--radius-md) - 3px);
-    }
-
-    & [aria-pressed="true"] { color: var(--color-text); background: var(--color-surface); box-shadow: var(--shadow-sm); }
-  }
-
   .btn {
     display: inline-flex;
     align-items: center;
@@ -352,7 +329,6 @@
     &.new { color: var(--color-info); background: var(--color-info-soft); }
     &.warn { color: var(--color-accent-text); background: var(--color-accent-soft); }
     &.status-want { color: var(--color-info); background: var(--color-info-soft); }
-    &.status-booked { color: var(--color-on-accent); background: var(--color-accent); }
     &.status-seen { color: var(--color-ok); background: var(--color-ok-soft); }
   }
 

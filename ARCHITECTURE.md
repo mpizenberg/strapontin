@@ -182,12 +182,12 @@ CREATE TABLE revision (               -- light edit history for the shared catal
 ### 4.2 Personal layer
 
 ```sql
-CREATE TABLE outing (                 -- want → booked → seen | missed
+CREATE TABLE outing (                 -- want → seen
   id            INTEGER PRIMARY KEY,
   member_id     INTEGER NOT NULL REFERENCES member(id) ON DELETE CASCADE,
   production_id INTEGER NOT NULL REFERENCES production(id),
   venue_id      INTEGER REFERENCES venue(id),
-  status        TEXT NOT NULL CHECK (status IN ('want','booked','seen','missed')),
+  status        TEXT NOT NULL CHECK (status IN ('want','seen')),
   date          TEXT,                 -- performance date, when known
   rating        INTEGER CHECK (rating BETWEEN 1 AND 5),
   comment       TEXT,
@@ -392,7 +392,7 @@ web/
   - The local npm configuration has `min-release-age` set to 7 days. Solid 2.0.0 was published on 2026-11-17, so the Solid packages (`solid-js`, `@solidjs/web`, `@solidjs/vite-plugin`) are installed as an explicit exception: `npm install --min-release-age=0 <those packages>`. That only changes how versions are picked; the lockfile pins the result. Other packages follow the normal rule.
 - **Views.**
   - The journal lists seen outings by date.
-  - The wishlist shows wants and bookings.
+  - The wishlist shows wants.
   - "Add" lets you paste a URL or search by title.
   - Production pages show the credits, your outings and the poster.
   - Person pages list every production they appear in and carry the favourite toggle.
