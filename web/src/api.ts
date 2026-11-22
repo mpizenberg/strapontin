@@ -40,6 +40,7 @@ export const api = {
   me: () => get<Me>("/api/me").catch((e) => (e instanceof ApiError && e.status === 401 ? null : Promise.reject(e))),
   login: (login: string, password: string) => request<Me>("POST", "/api/login", { login, password }),
   logout: () => request<void>("POST", "/api/logout"),
+  deleteAccount: (password: string) => request<void>("DELETE", "/api/me", { password }),
   roles: () => get<Role[]>("/api/roles"),
 
   createInvite: () => request<InviteLink>("POST", "/api/invites"),

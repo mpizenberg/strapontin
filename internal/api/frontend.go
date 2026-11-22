@@ -2,10 +2,15 @@ package api
 
 import (
 	"io/fs"
+	"mime"
 	"net/http"
 	"path"
 	"strings"
 )
+
+func init() {
+	mime.AddExtensionType(".webmanifest", "application/manifest+json")
+}
 
 // frontend serves static assets, and index.html for every other path so the
 // client-side router can handle it.

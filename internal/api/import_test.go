@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -137,4 +138,28 @@ func TestImport(t *testing.T) {
 	c.do("POST", "/api/import", map[string]string{"url": site.URL + "/missing"}, http.StatusBadGateway, nil)
 	c.do("POST", "/api/import", map[string]string{"url": "ftp://example.test/x"}, http.StatusBadRequest, nil)
 	e.client("").do("POST", "/api/import", map[string]string{"url": site.URL + "/tec-graph"}, http.StatusUnauthorized, nil)
+}
+
+func TestReextract(t *testing.T) {
+	e := newTestEnv(t)
+	site := venueSite(t)
+	var res importResult
+	e.client("lucie").do("POST", "/api/import", map[string]string{"url": site.URL + "/opengraph-only"}, http.StatusOK, &res)
+	e.db.Exec(`UPDATE snapshot SET extractor_version = 0, extracted = NULL`)
+	n, err := Reextract(e.db)
+	if err != nil || n != 1 {
+		t.Fatalf("Reextract = %d, %v", n, err)
+	}
+	var extracted string
+	e.db.QueryRow(`SELECT extracted FROM snapshot`).Scan(&extracted)
+	if !strings.Contains(extracted, "Bastien Coll") {
+		t.Fatalf("extracted = %s", extracted)
+	}
+	if n, _ := Reextract(e.db); n != 0 {
+		t.Fatal("up-to-date snapshots re-extracted")
+	}
+	u, body, err := SnapshotBody(e.db, res.Draft.SnapshotID)
+	if err != nil || u != site.URL+"/opengraph-only" || !strings.Contains(string(body), "Timidité") {
+		t.Fatalf("SnapshotBody = %q, %v", u, err)
+	}
 }

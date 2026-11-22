@@ -255,7 +255,16 @@ type favorite struct {
 }
 
 func (s *Server) listFavorites(w http.ResponseWriter, r *http.Request, m *auth.Member) {
-	rows, err := s.db.Query(`
+	list, err := favorites(s.db, m.ID)
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, list)
+}
+
+func favorites(q queryer, me int64) ([]favorite, error) {
+	rows, err := q.Query(`
 		SELECT f.entity, f.entity_id,
 		  coalesce(pe.name, v.name, wk.title, ''), coalesce(v.city, ''),
 		  CASE f.entity
@@ -272,10 +281,9 @@ func (s *Server) listFavorites(w http.ResponseWriter, r *http.Request, m *auth.M
 		LEFT JOIN venue v ON f.entity = 'venue' AND v.id = f.entity_id
 		LEFT JOIN work wk ON f.entity = 'work' AND wk.id = f.entity_id
 		WHERE f.member_id = ?
-		ORDER BY f.entity = 'person' DESC, 3`, m.ID)
+		ORDER BY f.entity = 'person' DESC, 3`, me)
 	if err != nil {
-		serverError(w, err)
-		return
+		return nil, err
 	}
 	defer rows.Close()
 	list := []favorite{}
@@ -283,15 +291,14 @@ func (s *Server) listFavorites(w http.ResponseWriter, r *http.Request, m *auth.M
 		var f favorite
 		var roles sql.NullString
 		if err := rows.Scan(&f.Entity, &f.ID, &f.Name, &f.City, &roles, &f.Productions); err != nil {
-			serverError(w, err)
-			return
+			return nil, err
 		}
 		if roles.String != "" {
 			f.Roles = strings.Split(roles.String, ",")
 		}
 		list = append(list, f)
 	}
-	writeJSON(w, http.StatusOK, list)
+	return list, rows.Err()
 }
 
 func (s *Server) putNote(w http.ResponseWriter, r *http.Request, m *auth.Member) {

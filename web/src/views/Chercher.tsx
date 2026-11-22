@@ -3,13 +3,7 @@ import { api } from "../api";
 import { navigate, route } from "../router";
 import { SummaryRow } from "../components/SummaryRow";
 import { formatRange } from "../format";
-
-/** The first web address in a text: a pasted link, or a link shared with some words around it. */
-export function findURL(text: string): string | undefined {
-  return text.match(/https?:\/\/\S+/i)?.[0] ?? (/^www\.\S+$/i.test(text.trim()) ? text.trim() : undefined);
-}
-
-const importPath = (url: string) => `/spectacles/nouveau?import=${encodeURIComponent(url)}`;
+import { findURL, importPath } from "../links";
 
 const agendaNames = { openagenda: "Agenda de la Métropole", tourisme: "Office de tourisme" } as const;
 type Agenda = keyof typeof agendaNames;

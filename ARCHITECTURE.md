@@ -366,7 +366,8 @@ PUT|DELETE /api/outings/{id}
 GET    /api/favorites
 PUT|DELETE /api/favorites/{entity}/{id}
 PUT    /api/notes/{entity}/{id}       an empty body deletes the note
-GET    /api/export.json | /api/export.csv               own data only
+GET    /api/export.json | /api/export.csv               own data only; the CSV has one row per outing
+DELETE /api/me                        {password}: deletes the account and the personal layer
 
 POST   /api/invites                   signup link; members within invite_quota, admins without limit
 
@@ -416,7 +417,7 @@ web/
   - UI labels avoid gender agreement for people: the app cannot know anyone's gender.
 - **Routing.** It is hand-written on the History API, with a path pattern mapped to a view.
 - **API client.** `api.ts` wraps `fetch`, and `types.ts` mirrors the Go JSON types by hand.
-- **PWA.** The manifest makes the app installable. On Android, `share_target` sends a shared page to `/add?url=…`; on iOS, the member pastes the URL instead. A service worker is added only if installation requires one, and none caches anything offline in v1.
+- **PWA.** The manifest makes the app installable. On Android, `share_target` opens `/chercher?titre=…&texte=…&url=…`; the first link found in the URL or the text starts an import (many apps put the link in the text). On iOS, the member pastes the URL instead. There is no service worker: installation doesn't need one, and nothing is cached offline in v1.
 - **CSS and design tokens.**
   - Cascade layers: `@layer reset, tokens, base, components;`.
   - `tokens.css` defines primitive values (`--gray-1…12`, `--accent-1…12`, `--space-1…8`, `--text-xs…2xl`, `--radius-*`, `--shadow-*`) and semantic tokens that reference them (`--color-surface`, `--color-text`, `--color-text-muted`, `--color-border`, `--color-accent`, `--space-gap`, ...).
@@ -439,7 +440,7 @@ web/
 
 ## 11. Operations
 
-- **Binary.** The `strapontin` binary embeds the migrations and the frontend build. Its subcommands are `serve`, `admin create`, `backup <path>`, `export`, and `reextract`.
+- **Binary.** The `strapontin` binary embeds the migrations and the frontend build. Its subcommands are `serve`, `admin create`, `backup <dir>`, `export <login>` (a member's data as JSON), `reextract` (re-runs extraction on snapshots read by an older extractor, without network) and `snapshot <id>` (prints a stored page for inspection).
 - **Configuration**, through environment variables (Dokku: `dokku config:set`), each also available as a flag:
 
   | Variable | Default | Meaning |

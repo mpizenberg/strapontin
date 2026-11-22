@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -43,9 +45,12 @@ func usage() {
 	fmt.Fprintln(os.Stderr, `usage: strapontin <command> [flags]
 
 commands:
-  serve          run the web server
-  admin create   create an admin account
-  backup <path>  write a copy of the database to a directory`)
+  serve            run the web server
+  admin create     create an admin account
+  backup <dir>     write a copy of the database to a directory
+  export <login>   print a member's data as JSON
+  reextract        re-run extraction on pages read by an older extractor
+  snapshot <id>    print a stored page (for inspection only)`)
 	os.Exit(2)
 }
 
@@ -84,6 +89,44 @@ func main() {
 			path, err := db.Backup(d, fs.Arg(0), "manual")
 			if err == nil {
 				fmt.Println(path)
+			}
+			return err
+		})
+	case "export":
+		if fs.NArg() != 1 {
+			usage()
+		}
+		err = withDB(cfg, func(d *sql.DB) error {
+			var id int64
+			if err := d.QueryRow(`SELECT id FROM member WHERE login = ?`, strings.ToLower(fs.Arg(0))).Scan(&id); err != nil {
+				return fmt.Errorf("member %q: %w", fs.Arg(0), err)
+			}
+			e, err := api.BuildExport(d, id)
+			if err != nil {
+				return err
+			}
+			enc := json.NewEncoder(os.Stdout)
+			enc.SetIndent("", "  ")
+			return enc.Encode(e)
+		})
+	case "reextract":
+		err = withDB(cfg, func(d *sql.DB) error {
+			n, err := api.Reextract(d)
+			if err == nil {
+				fmt.Printf("%d snapshots re-extracted\n", n)
+			}
+			return err
+		})
+	case "snapshot":
+		id, convErr := strconv.ParseInt(fs.Arg(0), 10, 64)
+		if fs.NArg() != 1 || convErr != nil {
+			usage()
+		}
+		err = withDB(cfg, func(d *sql.DB) error {
+			u, body, err := api.SnapshotBody(d, id)
+			if err == nil {
+				fmt.Fprintln(os.Stderr, u)
+				os.Stdout.Write(body)
 			}
 			return err
 		})

@@ -381,3 +381,57 @@ func (s *Server) savePoster(ctx context.Context, productionID int64, imageURL st
 		log.Printf("poster %s: %v", imageURL, err)
 	}
 }
+
+// Reextract runs the current extractor on snapshots read by an older one,
+// without contacting any site. It only refreshes the stored drafts: saved
+// productions are never changed.
+func Reextract(d *sql.DB) (int, error) {
+	rows, err := d.Query(`SELECT id, url, content_type, body FROM snapshot WHERE extractor_version < ?`, extract.Version)
+	if err != nil {
+		return 0, err
+	}
+	type page struct {
+		id               int64
+		url, contentType string
+		body             []byte
+	}
+	var pages []page
+	for rows.Next() {
+		var p page
+		var ct sql.NullString
+		if err := rows.Scan(&p.id, &p.url, &ct, &p.body); err != nil {
+			rows.Close()
+			return 0, err
+		}
+		p.contentType = ct.String
+		pages = append(pages, p)
+	}
+	rows.Close()
+	for _, p := range pages {
+		body, err := gunzip(p.body)
+		if err != nil {
+			return 0, fmt.Errorf("snapshot %d: %w", p.id, err)
+		}
+		draft, err := extract.Extract(body, p.contentType, p.url)
+		if err != nil {
+			return 0, fmt.Errorf("snapshot %d: %w", p.id, err)
+		}
+		out, _ := json.Marshal(draft)
+		if _, err := d.Exec(`UPDATE snapshot SET extracted = ?, extractor_version = ? WHERE id = ?`, string(out), extract.Version, p.id); err != nil {
+			return 0, err
+		}
+	}
+	return len(pages), nil
+}
+
+// SnapshotBody returns a stored page. Raw pages are for the admin's CLI only,
+// never served to members.
+func SnapshotBody(d *sql.DB, id int64) (string, []byte, error) {
+	var u string
+	var gz []byte
+	if err := d.QueryRow(`SELECT url, body FROM snapshot WHERE id = ?`, id).Scan(&u, &gz); err != nil {
+		return "", nil, err
+	}
+	body, err := gunzip(gz)
+	return u, body, err
+}
