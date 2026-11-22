@@ -51,7 +51,7 @@ Why there is a backend: browsers cannot fetch venue pages directly because of CO
 
 | Layer | Choice | Dependencies |
 |---|---|---|
-| Backend | Go ≥ 1.25, standard library `net/http`, `database/sql`, `embed`, `testing` | `modernc.org/sqlite` (pure Go, FTS5), `golang.org/x/net/html`, `golang.org/x/crypto` (argon2id) |
+| Backend | Go ≥ 1.26, standard library `net/http`, `database/sql`, `embed`, `testing` | `modernc.org/sqlite` (pure Go, FTS5), `golang.org/x/net/html`, `golang.org/x/crypto` (argon2id) |
 | Database | SQLite, WAL mode, a single file on a persistent volume | — |
 | Frontend | SolidJS 2, TypeScript, plain CSS | runtime: `solid-js`, `@solidjs/web`; dev: `vite`, `@solidjs/vite-plugin`, `typescript` |
 | Distribution | container image: multi-stage `Dockerfile` with a distroless static base | — |
@@ -113,6 +113,13 @@ CREATE TABLE production (             -- a specific staging; work_id is NULL for
   id INTEGER PRIMARY KEY, title TEXT NOT NULL,
   work_id INTEGER REFERENCES work(id), company TEXT, description TEXT,
   created_by INTEGER REFERENCES member(id) ON DELETE SET NULL, created_at TEXT NOT NULL
+);
+
+CREATE TABLE run (                    -- a production at one venue between two dates
+  id            INTEGER PRIMARY KEY,
+  production_id INTEGER NOT NULL REFERENCES production(id) ON DELETE CASCADE,
+  venue_id      INTEGER NOT NULL REFERENCES venue(id),
+  starts_on     TEXT, ends_on TEXT     -- dates, when known
 );
 
 CREATE TABLE credit (
@@ -186,7 +193,7 @@ CREATE TABLE outing (                 -- want → seen
   id            INTEGER PRIMARY KEY,
   member_id     INTEGER NOT NULL REFERENCES member(id) ON DELETE CASCADE,
   production_id INTEGER NOT NULL REFERENCES production(id),
-  venue_id      INTEGER REFERENCES venue(id),
+  run_id        INTEGER REFERENCES run(id) ON DELETE SET NULL,   -- where it was seen
   status        TEXT NOT NULL CHECK (status IN ('want','seen')),
   date          TEXT,                 -- performance date, when known
   rating        INTEGER CHECK (rating BETWEEN 1 AND 5),
