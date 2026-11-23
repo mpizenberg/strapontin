@@ -45,16 +45,18 @@ func TestImport(t *testing.T) {
 	site := venueSite(t)
 	c := e.client("lucie")
 
-	// The catalogue already knows the venue and two people called Camille Rey.
+	// The catalogue already knows the venue and two people called Camille Rey,
+	// created by separate saves.
 	var existing struct{ ID int64 }
 	c.do("POST", "/api/productions", map[string]any{
-		"title": "Les Fourberies",
-		"credits": []map[string]any{
-			{"person": map[string]any{"name": "Camille Rey"}, "role": "performer"},
-			{"person": map[string]any{"name": "Camille  REY"}, "role": "director"},
-		},
-		"runs": []map[string]any{{"venue": map[string]any{"name": "Théâtre du Pavé", "city": "Toulouse"}}},
+		"title":   "Les Fourberies",
+		"credits": []map[string]any{{"person": map[string]any{"name": "Camille Rey"}, "role": "performer"}},
+		"runs":    []map[string]any{{"venue": map[string]any{"name": "Théâtre du Pavé", "city": "Toulouse"}}},
 	}, http.StatusCreated, &existing)
+	c.do("POST", "/api/productions", map[string]any{
+		"title":   "Le Médecin volant",
+		"credits": []map[string]any{{"person": map[string]any{"name": "Camille  REY"}, "role": "director"}},
+	}, http.StatusCreated, nil)
 
 	var res importResult
 	c.do("POST", "/api/import", map[string]string{"url": site.URL + "/tec-graph"}, http.StatusOK, &res)

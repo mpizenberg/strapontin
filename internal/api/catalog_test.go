@@ -176,3 +176,27 @@ func TestPersonFavoritesNotesSearch(t *testing.T) {
 		t.Fatalf("venue = %+v", v)
 	}
 }
+
+func TestNewPersonInSeveralRoles(t *testing.T) {
+	c := newTestEnv(t).client("lucie")
+	in := misanthrope()
+	in["credits"] = []map[string]any{
+		{"person": map[string]any{"name": "Joël Pommerat"}, "role": "author"},
+		{"person": map[string]any{"name": "joel  pommerat"}, "role": "director"},
+	}
+	venue := map[string]any{"name": "Théâtre de la Cité", "city": "Toulouse"}
+	in["runs"] = []map[string]any{
+		{"venue": venue, "starts_on": "2026-12-02", "ends_on": "2026-12-05"},
+		{"venue": venue, "starts_on": "2027-01-10", "ends_on": "2027-01-12"},
+	}
+	var created struct{ ID int64 }
+	c.do("POST", "/api/productions", in, http.StatusCreated, &created)
+	var p production
+	c.do("GET", fmt.Sprintf("/api/productions/%d", created.ID), nil, http.StatusOK, &p)
+	if len(p.Credits) != 2 || p.Credits[0].Person.ID != p.Credits[1].Person.ID || p.Credits[1].Person.Name != "Joël Pommerat" {
+		t.Fatalf("credits = %+v", p.Credits)
+	}
+	if len(p.Runs) != 2 || p.Runs[0].Venue.ID != p.Runs[1].Venue.ID {
+		t.Fatalf("runs = %+v", p.Runs)
+	}
+}

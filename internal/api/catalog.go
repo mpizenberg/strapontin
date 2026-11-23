@@ -342,29 +342,43 @@ func (in *productionInput) validate() error {
 	return nil
 }
 
-func ensurePerson(tx queryer, ref personRef, me int64) (int64, error) {
+// ensurePerson returns the referenced person, or creates one. created holds
+// the people this save already created by name key: a new person credited in
+// two roles is one person.
+func ensurePerson(tx queryer, ref personRef, me int64, created map[string]int64) (int64, error) {
 	if ref.ID != 0 {
 		return ref.ID, tx.QueryRow(`SELECT id FROM person WHERE id = ?`, ref.ID).Scan(&ref.ID)
 	}
 	name := strings.Join(strings.Fields(ref.Name), " ")
+	key := db.NameKey(name)
+	if id, ok := created[key]; ok {
+		return id, nil
+	}
 	res, err := tx.Exec(`INSERT INTO person (name, name_key, created_by, created_at) VALUES (?, ?, ?, ?)`,
-		name, db.NameKey(name), me, db.Now())
+		name, key, me, db.Now())
 	if err != nil {
 		return 0, err
 	}
-	return res.LastInsertId()
+	created[key], err = res.LastInsertId()
+	return created[key], err
 }
 
-func ensureVenue(tx queryer, ref venueRef, me int64) (int64, error) {
+// ensureVenue is ensurePerson for venues, keyed by name and city.
+func ensureVenue(tx queryer, ref venueRef, me int64, created map[string]int64) (int64, error) {
 	if ref.ID != 0 {
 		return ref.ID, tx.QueryRow(`SELECT id FROM venue WHERE id = ?`, ref.ID).Scan(&ref.ID)
+	}
+	key := db.NameKey(ref.Name) + "\x00" + db.NameKey(ref.City)
+	if id, ok := created[key]; ok {
+		return id, nil
 	}
 	res, err := tx.Exec(`INSERT INTO venue (name, city, created_by, created_at) VALUES (?, ?, ?, ?)`,
 		strings.TrimSpace(ref.Name), nullString(ref.City), me, db.Now())
 	if err != nil {
 		return 0, err
 	}
-	return res.LastInsertId()
+	created[key], err = res.LastInsertId()
+	return created[key], err
 }
 
 func ensureWork(tx queryer, ref *workRef, me int64) (any, error) {
@@ -420,8 +434,9 @@ func saveProduction(tx queryer, id int64, in *productionInput, me int64) (int64,
 		}
 	}
 
+	people := map[string]int64{}
 	for i, c := range in.Credits {
-		personID, err := ensurePerson(tx, c.Person, me)
+		personID, err := ensurePerson(tx, c.Person, me, people)
 		if err != nil {
 			return 0, err
 		}
@@ -432,8 +447,9 @@ func saveProduction(tx queryer, id int64, in *productionInput, me int64) (int64,
 	}
 
 	kept := []string{"0"}
+	venues := map[string]int64{}
 	for _, r := range in.Runs {
-		venueID, err := ensureVenue(tx, r.Venue, me)
+		venueID, err := ensureVenue(tx, r.Venue, me, venues)
 		if err != nil {
 			return 0, err
 		}
