@@ -167,6 +167,8 @@ CREATE TABLE revision (               -- light edit history for the shared catal
 );
 ```
 
+**Homonyms and merging.** Two people can share a name: a new name in the production form is never matched to an existing person, the member picks among homonyms or creates a new one. Within one save, a new name credited in several roles is one person (and a new venue on several runs is one venue). A member who knows two homonyms are one person merges them from the person page: credits, favourites, notes (concatenated) and external ids move to the kept person, a `revision` records the removed one, and it is deleted. Only people with the same `name_key` merge, and never two linked to different Wikidata items.
+
 **Role vocabulary.** The roles are a closed list in Go, stored as English keys and displayed with French labels:
 
 | Key | French label |
@@ -358,7 +360,8 @@ GET    /api/search          ?q=&kind=   local FTS (productions, people, venues, 
 POST   /api/productions               production form, plus an optional first outing status;
                                       an imported draft adds snapshot_id and image (poster URL)
 GET|PUT /api/productions/{id}         PUT replaces credits and runs (run ids kept) and writes a revision
-GET|PUT /api/people/{id}              people include their credits across productions
+GET|PUT /api/people/{id}              people include their credits across productions and their homonyms
+POST   /api/people/{id}/merge         {from} folds a homonym into this person (see §4.1)
 GET|PUT /api/venues/{id}
 GET    /api/images/{id}
 GET|POST /api/outings  ?status=       own outings only, with a production summary

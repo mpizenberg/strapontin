@@ -200,3 +200,54 @@ func TestNewPersonInSeveralRoles(t *testing.T) {
 		t.Fatalf("runs = %+v", p.Runs)
 	}
 }
+
+func TestMergeHomonyms(t *testing.T) {
+	c := newTestEnv(t).client("lucie")
+	save := func(title string, credits ...map[string]any) production {
+		var created struct{ ID int64 }
+		c.do("POST", "/api/productions", map[string]any{"title": title, "credits": credits}, http.StatusCreated, &created)
+		var p production
+		c.do("GET", fmt.Sprintf("/api/productions/%d", created.ID), nil, http.StatusOK, &p)
+		return p
+	}
+	credit := func(person map[string]any, role string) map[string]any { return map[string]any{"person": person, "role": role} }
+	a := save("A", credit(map[string]any{"name": "Camille Rey"}, "author"))
+	b := save("B", credit(map[string]any{"name": "Camille  REY"}, "director"))
+	keep, gone := a.Credits[0].Person.ID, b.Credits[0].Person.ID
+	both := save("C", credit(map[string]any{"id": keep}, "performer"), credit(map[string]any{"id": gone}, "performer"))
+	other := save("D", credit(map[string]any{"name": "Camille Roy"}, "author")).Credits[0].Person.ID
+	for _, id := range []int64{keep, gone} {
+		c.do("PUT", fmt.Sprintf("/api/favorites/person/%d", id), nil, http.StatusNoContent, nil)
+		c.do("PUT", fmt.Sprintf("/api/notes/person/%d", id), map[string]string{"body": fmt.Sprintf("note %d", id)}, http.StatusNoContent, nil)
+	}
+	c.do("PUT", fmt.Sprintf("/api/people/%d/wikidata", gone), map[string]string{"id": "Q42"}, http.StatusNoContent, nil)
+
+	var p person
+	c.do("GET", fmt.Sprintf("/api/people/%d", keep), nil, http.StatusOK, &p)
+	if len(p.Homonyms) != 1 || p.Homonyms[0].ID != gone || p.Homonyms[0].Productions != 2 || len(p.Homonyms[0].Roles) != 2 {
+		t.Fatalf("homonyms = %+v", p.Homonyms)
+	}
+
+	merge := func(into, from int64, status int) {
+		c.do("POST", fmt.Sprintf("/api/people/%d/merge", into), map[string]int64{"from": from}, status, nil)
+	}
+	merge(keep, keep, http.StatusBadRequest)
+	merge(keep, other, http.StatusBadRequest)
+	c.do("PUT", fmt.Sprintf("/api/people/%d/wikidata", keep), map[string]string{"id": "Q1"}, http.StatusNoContent, nil)
+	merge(keep, gone, http.StatusBadRequest)
+	c.do("PUT", fmt.Sprintf("/api/people/%d/wikidata", keep), map[string]string{"id": ""}, http.StatusNoContent, nil)
+	merge(keep, gone, http.StatusOK)
+
+	c.do("GET", fmt.Sprintf("/api/people/%d", gone), nil, http.StatusNotFound, nil)
+	c.do("GET", fmt.Sprintf("/api/people/%d", keep), nil, http.StatusOK, &p)
+	if len(p.Credits) != 3 || len(p.Homonyms) != 0 || !p.Favorite || len(p.ExternalIDs) != 1 || p.ExternalIDs[0].Value != "Q42" {
+		t.Fatalf("merged person = %+v", p)
+	}
+	if want := fmt.Sprintf("note %d\n\nnote %d", keep, gone); p.Note != want {
+		t.Fatalf("note = %q, want %q", p.Note, want)
+	}
+	c.do("GET", fmt.Sprintf("/api/productions/%d", both.ID), nil, http.StatusOK, &both)
+	if len(both.Credits) != 1 || both.Credits[0].Person.ID != keep {
+		t.Fatalf("credits on C = %+v", both.Credits)
+	}
+}

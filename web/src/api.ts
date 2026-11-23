@@ -67,6 +67,7 @@ export const api = {
   updateProduction: (id: number, input: ProductionInput) => request<{ id: number }>("PUT", `/api/productions/${id}`, input),
   person: (id: number) => get<Person>(`/api/people/${id}`),
   renamePerson: (id: number, name: string) => request<void>("PUT", `/api/people/${id}`, { name }),
+  mergePerson: (id: number, from: number) => request<void>("POST", `/api/people/${id}/merge`, { from }),
   venue: (id: number) => get<Venue>(`/api/venues/${id}`),
   updateVenue: (id: number, v: { name: string; city: string; address: string }) =>
     request<void>("PUT", `/api/venues/${id}`, v),

@@ -6,7 +6,7 @@ import { roleLabel, roles } from "../roles";
 import { NoteField } from "../components/NoteField";
 import { Sheet } from "../components/Sheet";
 import { SummaryRow } from "../components/SummaryRow";
-import type { Person } from "../types";
+import type { Homonym, Person } from "../types";
 
 function groupByRole(p: Person) {
   return roles
@@ -18,6 +18,7 @@ export function PersonView(props: { id: number }) {
   const p = createMemo(() => api.person(props.id));
   const [renaming, setRenaming] = createSignal(false);
   const [linking, setLinking] = createSignal(false);
+  const [merging, setMerging] = createSignal<Homonym | null>(null);
   const productions = () => new Set(p().credits.map((c) => c.production.id)).size;
   const roleSummary = () => capitalize([...new Set(p().credits.map((c) => roleLabel(c.role)))].join(", "));
   const wikidata = () => p().external_ids.find((e) => e.scheme === "wikidata")?.value;
@@ -70,6 +71,27 @@ export function PersonView(props: { id: number }) {
             </section>
           )}
         </For>
+
+        <Show when={p().homonyms.length > 0}>
+          <section class="section">
+            <h2 class="section-title">Autres fiches au même nom</h2>
+            <p class="meta">S'il s'agit de la même personne, fusionnez les fiches.</p>
+            <ul class="list">
+              <For each={p().homonyms}>
+                {(h) => (
+                  <li class="row">
+                    <a class="grow" href={`/personnes/${h.id}`}>
+                      <span class="name">{h.name}</span>
+                      <br />
+                      <span class="meta">{homonymMeta(h)}</span>
+                    </a>
+                    <button class="btn small" onClick={() => setMerging(h)}>Fusionner</button>
+                  </li>
+                )}
+              </For>
+            </ul>
+          </section>
+        </Show>
       </main>
 
       <Show when={linking()}>
@@ -79,6 +101,15 @@ export function PersonView(props: { id: number }) {
           refresh(p);
         }} />
       </Show>
+      <Show when={merging()}>
+        {(h) => (
+          <MergeSheet homonym={h()} onClose={() => setMerging(null)} onMerge={async () => {
+            await api.mergePerson(props.id, h().id);
+            setMerging(null);
+            refresh(p);
+          }} />
+        )}
+      </Show>
       <Show when={renaming()}>
         <RenameSheet name={p().name} onClose={() => setRenaming(false)} onSave={async (name) => {
           await api.renamePerson(props.id, name);
@@ -87,6 +118,32 @@ export function PersonView(props: { id: number }) {
         }} />
       </Show>
     </>
+  );
+}
+
+function homonymMeta(h: Homonym) {
+  return [capitalize(h.roles.map(roleLabel).join(", ")), plural(h.productions, "spectacle", "spectacles")].filter(Boolean).join(" · ");
+}
+
+function MergeSheet(props: { homonym: Homonym; onClose: () => void; onMerge: () => Promise<void> }) {
+  const [error, setError] = createSignal("");
+  const merge = async () => {
+    try {
+      await props.onMerge();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+  return (
+    <Sheet title="Fusionner les fiches" onClose={props.onClose}>
+      <p>
+        L'autre fiche « {props.homonym.name} » rejoint celle-ci : ses crédits, favoris, notes et lien Wikidata y sont
+        déplacés, puis elle est supprimée.
+      </p>
+      <p class="meta">À faire seulement s'il s'agit bien de la même personne : la fusion ne peut pas être annulée.</p>
+      <Show when={error()}><p class="notice warn" role="alert">{error()}</p></Show>
+      <button class="btn primary block" onClick={merge}>Fusionner</button>
+    </Sheet>
   );
 }
 

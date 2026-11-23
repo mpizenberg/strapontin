@@ -58,6 +58,15 @@ type person struct {
 	Note        string         `json:"note"`
 	ExternalIDs []externalID   `json:"external_ids"`
 	Credits     []personCredit `json:"credits"`
+	Homonyms    []homonym      `json:"homonyms"`
+}
+
+// homonym is another person with the same name key, offered for merging.
+type homonym struct {
+	ID          int64    `json:"id"`
+	Name        string   `json:"name"`
+	Roles       []string `json:"roles"`
+	Productions int      `json:"productions"`
 }
 
 func (s *Server) getPerson(w http.ResponseWriter, r *http.Request, m *auth.Member) {
@@ -98,7 +107,35 @@ func (s *Server) getPerson(w http.ResponseWriter, r *http.Request, m *auth.Membe
 		c.Production = byID[pid]
 		p.Credits = append(p.Credits, c)
 	}
+	if p.Homonyms, err = homonyms(s.db, id); err != nil {
+		serverError(w, err)
+		return
+	}
 	writeJSON(w, http.StatusOK, p)
+}
+
+func homonyms(q queryer, id int64) ([]homonym, error) {
+	rows, err := q.Query(`
+		SELECT pe.id, pe.name, coalesce((SELECT group_concat(DISTINCT role) FROM credit WHERE person_id = pe.id), ''),
+		  (SELECT count(DISTINCT production_id) FROM credit WHERE person_id = pe.id)
+		FROM person pe
+		WHERE pe.name_key = (SELECT name_key FROM person WHERE id = ?) AND pe.id <> ?
+		ORDER BY pe.id`, id, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	hs := []homonym{}
+	for rows.Next() {
+		var h homonym
+		var roles string
+		if err := rows.Scan(&h.ID, &h.Name, &roles, &h.Productions); err != nil {
+			return nil, err
+		}
+		h.Roles = strings.FieldsFunc(roles, func(r rune) bool { return r == ',' })
+		hs = append(hs, h)
+	}
+	return hs, rows.Err()
 }
 
 func (s *Server) updatePerson(w http.ResponseWriter, r *http.Request, m *auth.Member) {
@@ -125,6 +162,70 @@ func (s *Server) updatePerson(w http.ResponseWriter, r *http.Request, m *auth.Me
 	})
 	if err != nil {
 		notFoundOr(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]int64{"id": id})
+}
+
+// mergePerson moves a homonym's credits, favorites, notes and external ids to
+// this person and deletes the homonym. Different names don't merge: a member
+// renames first, so a wrong id can't fold two people together.
+func (s *Server) mergePerson(w http.ResponseWriter, r *http.Request, m *auth.Member) {
+	id, _ := pathID(r)
+	var in struct{ From int64 }
+	if !decode(w, r, &in) {
+		return
+	}
+	if in.From == id {
+		writeError(w, http.StatusBadRequest, "Une fiche ne se fusionne pas avec elle-même.")
+		return
+	}
+	err := s.inTx(func(tx *sql.Tx) error {
+		var key, fromKey, fromName string
+		if err := tx.QueryRow(`SELECT name_key FROM person WHERE id = ?`, id).Scan(&key); err != nil {
+			return err
+		}
+		if err := tx.QueryRow(`SELECT name, name_key FROM person WHERE id = ?`, in.From).Scan(&fromName, &fromKey); err != nil {
+			return err
+		}
+		if key != fromKey {
+			return errInvalid("Seules des fiches au même nom se fusionnent. Renommez d'abord l'une des deux.")
+		}
+		var distinct bool
+		if err := tx.QueryRow(`SELECT EXISTS (SELECT 1 FROM external_id a JOIN external_id b ON a.scheme = b.scheme
+			WHERE a.entity = 'person' AND a.entity_id = ? AND b.entity = 'person' AND b.entity_id = ?)`, id, in.From).Scan(&distinct); err != nil {
+			return err
+		}
+		if distinct {
+			return errInvalid("Ces fiches sont liées à deux entrées Wikidata différentes : ce sont deux personnes.")
+		}
+		if err := saveRevision(tx, "person", in.From, m.ID, map[string]any{"id": in.From, "name": fromName, "merged_into": id}); err != nil {
+			return err
+		}
+		for _, q := range []string{
+			`UPDATE credit SET person_id = @into WHERE person_id = @from`,
+			// Both people credited in the same role on the same production.
+			`DELETE FROM credit WHERE person_id = @into AND id NOT IN
+			   (SELECT min(id) FROM credit WHERE person_id = @into GROUP BY production_id, work_id, role, coalesce(character, ''))`,
+			`INSERT OR IGNORE INTO favorite (member_id, entity, entity_id, created_at)
+			   SELECT member_id, 'person', @into, created_at FROM favorite WHERE entity = 'person' AND entity_id = @from`,
+			`INSERT INTO note (member_id, entity, entity_id, body, updated_at)
+			   SELECT member_id, 'person', @into, body, updated_at FROM note WHERE entity = 'person' AND entity_id = @from
+			   ON CONFLICT (member_id, entity, entity_id) DO UPDATE
+			   SET body = note.body || char(10) || char(10) || excluded.body, updated_at = max(note.updated_at, excluded.updated_at)`,
+			`DELETE FROM favorite WHERE entity = 'person' AND entity_id = @from`,
+			`DELETE FROM note WHERE entity = 'person' AND entity_id = @from`,
+			`UPDATE external_id SET entity_id = @into WHERE entity = 'person' AND entity_id = @from`,
+			`DELETE FROM person WHERE id = @from`,
+		} {
+			if _, err := tx.Exec(q, sql.Named("into", id), sql.Named("from", in.From)); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		writeSaveError(w, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]int64{"id": id})

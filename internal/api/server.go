@@ -88,6 +88,7 @@ func New(db *sql.DB, cfg Config, static fs.FS) *Server {
 	mux.HandleFunc("PUT /api/productions/{id}", s.member(s.updateProduction))
 	mux.HandleFunc("GET /api/people/{id}", s.member(s.getPerson))
 	mux.HandleFunc("PUT /api/people/{id}", s.member(s.updatePerson))
+	mux.HandleFunc("POST /api/people/{id}/merge", s.member(s.mergePerson))
 	mux.HandleFunc("GET /api/venues/{id}", s.member(s.getVenue))
 	mux.HandleFunc("PUT /api/venues/{id}", s.member(s.updateVenue))
 	mux.HandleFunc("GET /api/images/{id}", s.member(s.getImage))

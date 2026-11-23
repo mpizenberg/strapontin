@@ -158,6 +158,14 @@ export interface Person {
   note: string;
   external_ids: ExternalID[];
   credits: { role: string; character?: string; production: Summary }[];
+  homonyms: Homonym[];
+}
+
+export interface Homonym {
+  id: number;
+  name: string;
+  roles: string[];
+  productions: number;
 }
 
 export interface Venue {
